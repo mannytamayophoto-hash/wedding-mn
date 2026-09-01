@@ -1,0 +1,473 @@
+<!doctype html>
+<html lang="en-AU">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>M y N — Design Directions</title>
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@400;500;600&family=Jost:wght@300;400;500&family=Playfair+Display:wght@400;500;600&display=swap&family=Work+Sans:wght@300;400;500&family=EB+Garamond:ital,wght@0,400;0,500;1,400&family=Karla:wght@300;400;500&display=swap" rel="stylesheet" />
+<style>
+  :root {
+    --ecru: #F2E9D8;
+    --ecru-deep: #E9DBC0;
+    --ink: #24211B;
+    --ink-soft: #45413A;
+    --burnt: #B14E22;
+    --burnt-soft: #C56A3F;
+    --gold: #C89B4A;
+    --gold-soft: #D8BA82;
+  }
+
+  * { box-sizing: border-box; }
+
+  html, body {
+    margin: 0;
+    padding: 0;
+    background: var(--ecru);
+    color: var(--ink);
+    font-family: "Jost", sans-serif;
+  }
+
+  #canvas { transition: filter 0.4s ease; }
+  #canvas.greyscale { filter: grayscale(1); }
+
+  .intro {
+    max-width: 780px;
+    margin: 0 auto;
+    padding: 72px 24px 48px;
+    text-align: center;
+  }
+
+  .intro .eyebrow {
+    font-family: "Jost", sans-serif;
+    font-size: 12px;
+    letter-spacing: 0.32em;
+    text-transform: uppercase;
+    color: var(--burnt);
+    margin-bottom: 18px;
+  }
+
+  .intro h1 {
+    font-family: "Cormorant Garamond", serif;
+    font-weight: 500;
+    font-size: 44px;
+    margin: 0 0 14px;
+  }
+
+  .intro p {
+    font-size: 16px;
+    line-height: 1.7;
+    color: var(--ink-soft);
+    margin: 0 auto;
+    max-width: 560px;
+  }
+
+  .toggle-bar {
+    position: sticky;
+    top: 0;
+    z-index: 50;
+    display: flex;
+    justify-content: center;
+    padding: 14px;
+    background: var(--ecru);
+    border-bottom: 1px solid var(--gold-soft);
+  }
+
+  .toggle-bar button {
+    font-family: "Jost", sans-serif;
+    font-size: 12px;
+    letter-spacing: 0.18em;
+    text-transform: uppercase;
+    background: var(--ink);
+    color: var(--ecru);
+    border: none;
+    padding: 12px 22px;
+    cursor: pointer;
+    border-radius: 2px;
+  }
+
+  .toggle-bar button:hover { background: var(--burnt); }
+
+  .toggle-bar .note {
+    align-self: center;
+    margin-left: 16px;
+    font-size: 12px;
+    color: var(--ink-soft);
+    max-width: 320px;
+  }
+
+  .direction {
+    max-width: 1040px;
+    margin: 0 auto;
+    padding: 64px 24px 80px;
+    border-bottom: 1px solid var(--gold-soft);
+  }
+
+  .direction:last-child { border-bottom: none; }
+
+  .direction-label {
+    display: flex;
+    align-items: baseline;
+    gap: 16px;
+    margin-bottom: 6px;
+  }
+
+  .direction-label .num {
+    font-family: "Cormorant Garamond", serif;
+    font-size: 20px;
+    color: var(--burnt);
+  }
+
+  .direction-label h2 {
+    font-family: var(--dir-heading-font, "Cormorant Garamond", serif);
+    font-size: 32px;
+    font-weight: 600;
+    margin: 0;
+  }
+
+  .direction-desc {
+    color: var(--ink-soft);
+    font-size: 15px;
+    line-height: 1.7;
+    max-width: 640px;
+    margin: 8px 0 40px;
+  }
+
+  .grid-two {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 40px;
+  }
+
+  @media (max-width: 800px) {
+    .grid-two { grid-template-columns: 1fr; }
+  }
+
+  .panel {
+    background: var(--ecru-deep);
+    border: 1px solid var(--gold-soft);
+    padding: 28px;
+  }
+
+  .panel h3 {
+    font-family: "Jost", sans-serif;
+    font-size: 11px;
+    letter-spacing: 0.24em;
+    text-transform: uppercase;
+    color: var(--burnt);
+    margin: 0 0 20px;
+  }
+
+  .swatches { display: flex; gap: 12px; flex-wrap: wrap; }
+
+  .swatch {
+    flex: 1 1 100px;
+    min-width: 100px;
+    text-align: center;
+  }
+
+  .swatch .chip {
+    height: 64px;
+    border: 1px solid rgba(36,33,27,0.15);
+    margin-bottom: 8px;
+  }
+
+  .swatch .name { font-size: 12px; font-weight: 500; }
+  .swatch .hex { font-size: 11px; color: var(--ink-soft); }
+
+  .type-sample .h1 {
+    font-family: var(--dir-heading-font, "Cormorant Garamond", serif);
+    font-size: 38px;
+    font-weight: 600;
+    margin: 0 0 6px;
+  }
+
+  .type-sample .h2 {
+    font-family: var(--dir-heading-font, "Cormorant Garamond", serif);
+    font-size: 20px;
+    font-style: italic;
+    color: var(--burnt);
+    margin: 0 0 16px;
+  }
+
+  .type-sample .body-copy {
+    font-family: var(--dir-body-font, "Jost", sans-serif);
+    font-size: 15px;
+    line-height: 1.75;
+    color: var(--ink-soft);
+    margin: 0;
+  }
+
+  .invite-mock {
+    grid-column: 1 / -1;
+    background: var(--ecru);
+    border: 1px solid var(--gold);
+    padding: 56px 32px;
+    text-align: center;
+  }
+
+  .invite-mock .frame {
+    max-width: 420px;
+    margin: 0 auto;
+    padding: 40px 24px;
+    border: 1px solid var(--gold);
+    position: relative;
+  }
+
+  .invite-mock .monogram { margin-bottom: 18px; }
+
+  .invite-mock .lead {
+    font-family: "Jost", sans-serif;
+    font-size: 11px;
+    letter-spacing: 0.3em;
+    text-transform: uppercase;
+    color: var(--burnt);
+    margin-bottom: 14px;
+  }
+
+  .invite-mock .names {
+    font-family: var(--dir-heading-font, "Cormorant Garamond", serif);
+    font-size: 30px;
+    font-weight: 500;
+    margin: 0 0 12px;
+  }
+
+  .invite-mock .divider-motif { margin: 16px auto; }
+
+  .invite-mock .date-line {
+    font-family: var(--dir-body-font, "Jost", sans-serif);
+    font-size: 14px;
+    letter-spacing: 0.06em;
+    color: var(--ink-soft);
+  }
+
+  /* Direction specific font variables */
+  .dir-a { --dir-heading-font: "Cormorant Garamond", serif; --dir-body-font: "Jost", sans-serif; }
+  .dir-b { --dir-heading-font: "Playfair Display", serif; --dir-body-font: "Work Sans", sans-serif; }
+  .dir-c { --dir-heading-font: "EB Garamond", serif; --dir-body-font: "Karla", sans-serif; }
+
+  footer {
+    text-align: center;
+    padding: 48px 24px 80px;
+    font-size: 12px;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: var(--ink-soft);
+  }
+</style>
+</head>
+<body>
+
+<div class="toggle-bar">
+  <button id="greyscaleToggle">View in greyscale</button>
+  <div class="note">Checks that tone, not just colour, carries the hierarchy. Toggle this before picking a direction.</div>
+</div>
+
+<div id="canvas">
+
+<div class="intro">
+  <div class="eyebrow">M y N &middot; 10 April 2027</div>
+  <h1>Design Directions</h1>
+  <p>Three ways of applying the same brief: ecru base, burnt orange and gold accents used sparingly, ink dark for text. Each direction is a different mood built from that one palette, a different type pairing, and a different monogram treatment. Pick the one that feels right, or tell me what to pull from each.</p>
+</div>
+
+<!-- DIRECTION A -->
+<section class="direction dir-a">
+  <div class="direction-label">
+    <span class="num">01</span>
+    <h2>Casa Ecru</h2>
+  </div>
+  <p class="direction-desc">The classic hacienda invitation. Generous space, thin gold rules doing the decorating, a capiz shell scallop as the only flourish. Quiet and formal, closest to a printed heirloom invite.</p>
+
+  <div class="grid-two">
+    <div class="panel">
+      <h3>Palette</h3>
+      <div class="swatches">
+        <div class="swatch"><div class="chip" style="background:var(--ecru)"></div><div class="name">Ecru</div><div class="hex">#F2E9D8</div></div>
+        <div class="swatch"><div class="chip" style="background:var(--gold)"></div><div class="name">Gold</div><div class="hex">#C89B4A</div></div>
+        <div class="swatch"><div class="chip" style="background:var(--burnt)"></div><div class="name">Burnt orange</div><div class="hex">#B14E22</div></div>
+        <div class="swatch"><div class="chip" style="background:var(--ink)"></div><div class="name">Ink</div><div class="hex">#24211B</div></div>
+      </div>
+    </div>
+
+    <div class="panel type-sample">
+      <h3>Type, Cormorant Garamond / Jost</h3>
+      <div class="h1">La Boda</div>
+      <div class="h2">Nuestra Historia</div>
+      <p class="body-copy">Manuel and Natasha invite you to celebrate their wedding at San Agustin Church, Intramuros, followed by a reception at the Diamond Hotel Manila. Gracias, salamat, for being part of our story.</p>
+    </div>
+
+    <div class="panel">
+      <h3>Monogram concept</h3>
+      <svg width="100%" height="150" viewBox="0 0 300 150">
+        <circle cx="150" cy="75" r="58" fill="none" stroke="#C89B4A" stroke-width="1.2"/>
+        <path d="M 100 75 Q 150 40 200 75" fill="none" stroke="#C89B4A" stroke-width="1" opacity="0.5"/>
+        <path d="M 100 75 Q 150 110 200 75" fill="none" stroke="#C89B4A" stroke-width="1" opacity="0.5"/>
+        <text x="150" y="88" font-family="Cormorant Garamond, serif" font-size="42" font-weight="500" fill="#24211B" text-anchor="middle">M<tspan font-size="20" fill="#B14E22" dx="4">y</tspan><tspan dx="4">N</tspan></text>
+      </svg>
+      <p style="font-size:12px;color:var(--ink-soft);margin-top:4px;">Circular capiz frame, thin gold ring, serif monogram with the "y" set small in burnt orange.</p>
+    </div>
+
+    <div class="panel">
+      <h3>Motif, capiz scallop divider</h3>
+      <svg width="100%" height="60" viewBox="0 0 300 60">
+        <g stroke="#C89B4A" stroke-width="1" fill="none">
+          <path d="M0,30 a15,15 0 0,1 30,0 a15,15 0 0,1 30,0 a15,15 0 0,1 30,0 a15,15 0 0,1 30,0 a15,15 0 0,1 30,0 a15,15 0 0,1 30,0 a15,15 0 0,1 30,0 a15,15 0 0,1 30,0 a15,15 0 0,1 30,0 a15,15 0 0,1 30,0"/>
+        </g>
+      </svg>
+    </div>
+
+    <div class="invite-mock">
+      <div class="frame">
+        <div class="monogram">
+          <svg width="70" height="70" viewBox="0 0 70 70"><circle cx="35" cy="35" r="30" fill="none" stroke="#C89B4A" stroke-width="1"/><text x="35" y="42" font-family="Cormorant Garamond, serif" font-size="20" fill="#24211B" text-anchor="middle">M y N</text></svg>
+        </div>
+        <div class="lead">La Boda</div>
+        <div class="names">Manuel &amp; Natasha</div>
+        <div class="divider-motif">
+          <svg width="120" height="14" viewBox="0 0 120 14"><line x1="0" y1="7" x2="45" y2="7" stroke="#C89B4A" stroke-width="1"/><circle cx="60" cy="7" r="3" fill="#B14E22"/><line x1="75" y1="7" x2="120" y2="7" stroke="#C89B4A" stroke-width="1"/></svg>
+        </div>
+        <div class="date-line">Saturday, 10 April 2027 &middot; Intramuros, Manila</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- DIRECTION B -->
+<section class="direction dir-b">
+  <div class="direction-label">
+    <span class="num">02</span>
+    <h2>Intramuros Ink</h2>
+  </div>
+  <p class="direction-desc">More architectural, drawing from the stone and iron of San Agustin itself. Same palette, but ink is used with more confidence, in banding and rule work, echoing a church window lattice rather than a garden party.</p>
+
+  <div class="grid-two">
+    <div class="panel">
+      <h3>Palette</h3>
+      <div class="swatches">
+        <div class="swatch"><div class="chip" style="background:var(--ecru)"></div><div class="name">Ecru</div><div class="hex">#F2E9D8</div></div>
+        <div class="swatch"><div class="chip" style="background:var(--gold)"></div><div class="name">Gold</div><div class="hex">#C89B4A</div></div>
+        <div class="swatch"><div class="chip" style="background:var(--burnt-soft)"></div><div class="name">Burnt orange</div><div class="hex">#C56A3F</div></div>
+        <div class="swatch"><div class="chip" style="background:var(--ink)"></div><div class="name">Ink</div><div class="hex">#24211B</div></div>
+      </div>
+    </div>
+
+    <div class="panel type-sample">
+      <h3>Type, Playfair Display / Work Sans</h3>
+      <div class="h1">La Boda</div>
+      <div class="h2">Nuestra Historia</div>
+      <p class="body-copy">Manuel and Natasha invite you to celebrate their wedding at San Agustin Church, Intramuros, followed by a reception at the Diamond Hotel Manila. Gracias, salamat, for being part of our story.</p>
+    </div>
+
+    <div class="panel">
+      <h3>Monogram concept</h3>
+      <svg width="100%" height="150" viewBox="0 0 300 150">
+        <rect x="95" y="20" width="110" height="110" fill="none" stroke="#24211B" stroke-width="1.2"/>
+        <rect x="105" y="30" width="90" height="90" fill="none" stroke="#C89B4A" stroke-width="1"/>
+        <text x="150" y="85" font-family="Playfair Display, serif" font-size="38" font-weight="600" fill="#24211B" text-anchor="middle">M<tspan font-size="18" fill="#C56A3F" dx="3">y</tspan><tspan dx="3">N</tspan></text>
+      </svg>
+      <p style="font-size:12px;color:var(--ink-soft);margin-top:4px;">Two nested squares, echoing a window lattice, ink outer line, gold inner line.</p>
+    </div>
+
+    <div class="panel">
+      <h3>Motif, lattice border</h3>
+      <svg width="100%" height="60" viewBox="0 0 300 60">
+        <g stroke="#24211B" stroke-width="1" fill="none">
+          <path d="M0,30 L15,15 L30,30 L45,15 L60,30 L75,15 L90,30 L105,15 L120,30 L135,15 L150,30 L165,15 L180,30 L195,15 L210,30 L225,15 L240,30 L255,15 L270,30 L285,15 L300,30"/>
+        </g>
+      </svg>
+    </div>
+
+    <div class="invite-mock" style="background:var(--ink);">
+      <div class="frame" style="border-color:var(--gold);">
+        <div class="monogram">
+          <svg width="70" height="70" viewBox="0 0 70 70"><rect x="15" y="15" width="40" height="40" fill="none" stroke="#C89B4A" stroke-width="1"/><text x="35" y="42" font-family="Playfair Display, serif" font-size="18" fill="#F2E9D8" text-anchor="middle">M y N</text></svg>
+        </div>
+        <div class="lead" style="color:var(--gold-soft);">La Boda</div>
+        <div class="names" style="color:var(--ecru);">Manuel &amp; Natasha</div>
+        <div class="divider-motif">
+          <svg width="120" height="14" viewBox="0 0 120 14"><line x1="0" y1="7" x2="45" y2="7" stroke="#C89B4A" stroke-width="1"/><rect x="57" y="4" width="6" height="6" fill="#C89B4A"/><line x1="75" y1="7" x2="120" y2="7" stroke="#C89B4A" stroke-width="1"/></svg>
+        </div>
+        <div class="date-line" style="color:var(--ecru-deep);">Saturday, 10 April 2027 &middot; Intramuros, Manila</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- DIRECTION C -->
+<section class="direction dir-c">
+  <div class="direction-label">
+    <span class="num">03</span>
+    <h2>Sampaguita Light</h2>
+  </div>
+  <p class="direction-desc">The lightest and airiest of the three. Delicate sampaguita garland linework instead of geometric borders, a softer touch overall, gold held back for the monogram and one divider only.</p>
+
+  <div class="grid-two">
+    <div class="panel">
+      <h3>Palette</h3>
+      <div class="swatches">
+        <div class="swatch"><div class="chip" style="background:var(--ecru)"></div><div class="name">Ecru</div><div class="hex">#F2E9D8</div></div>
+        <div class="swatch"><div class="chip" style="background:var(--gold-soft)"></div><div class="name">Gold, soft</div><div class="hex">#D8BA82</div></div>
+        <div class="swatch"><div class="chip" style="background:var(--burnt)"></div><div class="name">Burnt orange</div><div class="hex">#B14E22</div></div>
+        <div class="swatch"><div class="chip" style="background:var(--ink-soft)"></div><div class="name">Ink, soft</div><div class="hex">#45413A</div></div>
+      </div>
+    </div>
+
+    <div class="panel type-sample">
+      <h3>Type, EB Garamond / Karla</h3>
+      <div class="h1" style="font-style:italic;">La Boda</div>
+      <div class="h2">Nuestra Historia</div>
+      <p class="body-copy">Manuel and Natasha invite you to celebrate their wedding at San Agustin Church, Intramuros, followed by a reception at the Diamond Hotel Manila. Gracias, salamat, for being part of our story.</p>
+    </div>
+
+    <div class="panel">
+      <h3>Monogram concept</h3>
+      <svg width="100%" height="150" viewBox="0 0 300 150">
+        <path d="M 90 75 C 100 55, 130 55, 140 75 C 150 55, 180 55, 190 75" fill="none" stroke="#D8BA82" stroke-width="1.2"/>
+        <circle cx="90" cy="75" r="3" fill="#B14E22"/>
+        <circle cx="210" cy="75" r="3" fill="#B14E22"/>
+        <text x="150" y="88" font-family="EB Garamond, serif" font-style="italic" font-size="40" fill="#24211B" text-anchor="middle">M<tspan font-size="18" fill="#B14E22" dx="4">y</tspan><tspan dx="4">N</tspan></text>
+      </svg>
+      <p style="font-size:12px;color:var(--ink-soft);margin-top:4px;">Italic serif monogram with a sampaguita sprig either side, no frame at all.</p>
+    </div>
+
+    <div class="panel">
+      <h3>Motif, sampaguita garland</h3>
+      <svg width="100%" height="60" viewBox="0 0 300 60">
+        <g stroke="#D8BA82" stroke-width="1" fill="none">
+          <path d="M0,30 C10,15 20,15 30,30 C40,45 50,45 60,30 C70,15 80,15 90,30 C100,45 110,45 120,30 C130,15 140,15 150,30 C160,45 170,45 180,30 C190,15 200,15 210,30 C220,45 230,45 240,30 C250,15 260,15 270,30 C280,45 290,45 300,30"/>
+        </g>
+      </svg>
+    </div>
+
+    <div class="invite-mock">
+      <div class="frame" style="border:none;">
+        <div class="monogram">
+          <svg width="70" height="70" viewBox="0 0 70 70"><text x="35" y="42" font-family="EB Garamond, serif" font-style="italic" font-size="20" fill="#24211B" text-anchor="middle">M y N</text></svg>
+        </div>
+        <div class="lead">La Boda</div>
+        <div class="names" style="font-style:italic;">Manuel &amp; Natasha</div>
+        <div class="divider-motif">
+          <svg width="120" height="14" viewBox="0 0 120 14"><path d="M0,7 C20,0 30,14 50,7 C70,0 80,14 100,7 C110,3 115,10 120,7" stroke="#D8BA82" stroke-width="1" fill="none"/></svg>
+        </div>
+        <div class="date-line">Saturday, 10 April 2027 &middot; Intramuros, Manila</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<footer>Manuel y Natasha &middot; 10 April 2027 &middot; Design directions, not final</footer>
+
+</div>
+
+<script>
+  document.getElementById('greyscaleToggle').addEventListener('click', function() {
+    var canvas = document.getElementById('canvas');
+    canvas.classList.toggle('greyscale');
+    this.textContent = canvas.classList.contains('greyscale') ? 'Back to colour' : 'View in greyscale';
+  });
+</script>
+
+</body>
+</html>

@@ -1,0 +1,15 @@
+BEGIN:VCALENDAR
+VERSION:2.0
+PRODID:-//Manuel y Natasha//Wedding//EN
+CALSCALE:GREGORIAN
+METHOD:PUBLISH
+BEGIN:VEVENT
+UID:manuel-y-natasha-20270410@tamayo
+DTSTAMP:20260719T000000Z
+DTSTART:20270410T080000Z
+DTEND:20270410T090000Z
+SUMMARY:Manuel y Natasha, La Boda
+DESCRIPTION:Wedding ceremony of Manuel and Natasha. Please be seated by 3.30pm. Reception follows at the Diamond Hotel Manila.
+LOCATION:San Agustin Church, General Luna Street, Intramuros, Manila
+END:VEVENT
+END:VCALENDAR

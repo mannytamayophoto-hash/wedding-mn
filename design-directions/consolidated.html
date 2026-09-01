@@ -1,0 +1,651 @@
+<!doctype html>
+<html lang="en-AU">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>M y N — Consolidated Direction</title>
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=Pinyon+Script&family=Cinzel:wght@400;500;600&family=IM+Fell+English:ital@0;1&family=Alegreya:ital,wght@0,400;0,500;0,600;1,400&family=Noto+Sans+Tagalog&display=swap" rel="stylesheet" />
+<style>
+  :root {
+    --ecru: #F5EDDD;
+    --ecru-deep: #EADFC6;
+    --ink: #2B2B2B;
+    --ink-soft: #4A463F;
+    --wine: #6B1E36;
+    --burnt: #C1552C;
+    --gold: #C9A227;
+    --gold-soft: #DCC383;
+  }
+
+  * { box-sizing: border-box; }
+
+  html, body {
+    margin: 0;
+    padding: 0;
+    background: var(--ecru);
+    color: var(--ink);
+    font-family: "Alegreya", serif;
+  }
+
+  #canvas { transition: filter 0.4s ease; }
+  #canvas.greyscale { filter: grayscale(1); }
+
+  .toggle-bar {
+    position: sticky;
+    top: 0;
+    z-index: 50;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    gap: 16px;
+    padding: 12px;
+    background: var(--ecru);
+    border-bottom: 1px solid var(--gold-soft);
+  }
+
+  .toggle-bar button {
+    font-family: "Cinzel", serif;
+    font-size: 12px;
+    letter-spacing: 0.18em;
+    text-transform: uppercase;
+    background: var(--ink);
+    color: var(--ecru);
+    border: none;
+    padding: 11px 20px;
+    cursor: pointer;
+    border-radius: 2px;
+  }
+
+  .toggle-bar button:hover { background: var(--burnt); }
+
+  .toggle-bar .note {
+    font-size: 12px;
+    color: var(--ink-soft);
+    max-width: 340px;
+  }
+
+  /* Embroidery band, barong style repeating pattern */
+  .embroidery-band {
+    height: 26px;
+    background:
+      repeating-linear-gradient(90deg,
+        transparent 0px, transparent 6px,
+        rgba(201,162,39,0.45) 6px, rgba(201,162,39,0.45) 7px,
+        transparent 7px, transparent 13px),
+      repeating-linear-gradient(90deg,
+        rgba(201,162,39,0.18) 0px, rgba(201,162,39,0.18) 26px,
+        rgba(201,162,39,0.32) 26px, rgba(201,162,39,0.32) 52px);
+    border-top: 1px solid var(--gold);
+    border-bottom: 1px solid var(--gold);
+  }
+
+  /* Capiz window grid texture */
+  .capiz-section {
+    background-image:
+      linear-gradient(rgba(201,162,39,0.10) 1px, transparent 1px),
+      linear-gradient(90deg, rgba(201,162,39,0.10) 1px, transparent 1px);
+    background-size: 44px 44px;
+  }
+
+  .hero {
+    text-align: center;
+    padding: 84px 24px 40px;
+  }
+
+  .hero .eyebrow {
+    font-family: "Cinzel", serif;
+    font-size: 13px;
+    font-weight: 500;
+    letter-spacing: 0.32em;
+    text-transform: uppercase;
+    color: var(--burnt);
+    margin-bottom: 26px;
+  }
+
+  .hero .script-names {
+    font-family: "Pinyon Script", cursive;
+    font-size: clamp(48px, 8vw, 88px);
+    line-height: 1.25;
+    color: var(--wine);
+    margin: 0 0 8px;
+  }
+
+  .hero .serif-sub {
+    font-family: "Cinzel", serif;
+    font-size: 20px;
+    font-weight: 500;
+    letter-spacing: 0.12em;
+    color: var(--ink);
+    margin: 6px 0 26px;
+  }
+
+  .hero .date-line {
+    font-family: "Cinzel", serif;
+    font-size: 14px;
+    letter-spacing: 0.16em;
+    text-transform: uppercase;
+    color: var(--ink-soft);
+  }
+
+  .logo-wrap { margin: 6px 0 10px; }
+
+  .logo-plate {
+    width: min(680px, 90vw);
+    height: auto;
+    mix-blend-mode: multiply;
+    -webkit-mask-image: radial-gradient(ellipse 60% 42% at center, black 30%, transparent 74%);
+    mask-image: radial-gradient(ellipse 60% 42% at center, black 30%, transparent 74%);
+  }
+
+  /* Sampaguita divider */
+  .divider {
+    display: flex;
+    justify-content: center;
+    padding: 34px 0;
+  }
+
+  /* Baybayin accents */
+  .baybayin {
+    font-family: "Noto Sans Tagalog", sans-serif;
+  }
+
+  .baybayin-divider {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 6px;
+    padding: 30px 0;
+  }
+
+  .baybayin-divider .glyph-row {
+    display: flex;
+    align-items: center;
+    gap: 18px;
+  }
+
+  .baybayin-divider .rule {
+    width: 70px;
+    height: 1px;
+    background: var(--gold-soft);
+  }
+
+  .baybayin-divider .glyphs {
+    font-family: "Noto Sans Tagalog", sans-serif;
+    font-size: 24px;
+    color: var(--gold);
+    letter-spacing: 0.1em;
+  }
+
+  .baybayin-divider .gloss {
+    font-family: "IM Fell English", serif;
+    font-style: italic;
+    font-size: 12px;
+    color: var(--ink-soft);
+  }
+
+  .hero-baybayin {
+    margin-top: 14px;
+  }
+
+  .hero-baybayin .glyphs {
+    font-family: "Noto Sans Tagalog", sans-serif;
+    font-size: 20px;
+    color: var(--gold);
+    letter-spacing: 0.12em;
+  }
+
+  .hero-baybayin .gloss {
+    font-family: "IM Fell English", serif;
+    font-style: italic;
+    font-size: 12px;
+    color: var(--ink-soft);
+    margin-top: 2px;
+  }
+
+  section.sample {
+    max-width: 960px;
+    margin: 0 auto;
+    padding: 24px 24px 56px;
+    text-align: center;
+  }
+
+  section.sample h2 {
+    font-family: "Pinyon Script", cursive;
+    font-size: 48px;
+    font-weight: 400;
+    color: var(--wine);
+    margin: 0 0 6px;
+  }
+
+  section.sample h3 {
+    font-family: "IM Fell English", serif;
+    font-style: italic;
+    font-size: 19px;
+    font-weight: 400;
+    letter-spacing: 0.04em;
+    color: var(--burnt);
+    margin: 0 0 26px;
+  }
+
+  section.sample p.lede {
+    font-size: 16px;
+    line-height: 1.8;
+    color: var(--ink-soft);
+    max-width: 600px;
+    margin: 0 auto 40px;
+  }
+
+  /* Arched frames */
+  .arch-row {
+    display: flex;
+    gap: 28px;
+    justify-content: center;
+    flex-wrap: wrap;
+  }
+
+  .arch-frame {
+    width: 240px;
+    height: 320px;
+    border-radius: 120px 120px 0 0;
+    border: 1px solid var(--gold);
+    padding: 10px;
+    background: var(--ecru);
+  }
+
+  .arch-frame .inner {
+    width: 100%;
+    height: 100%;
+    border-radius: 110px 110px 0 0;
+    background: var(--ecru-deep);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    overflow: hidden;
+  }
+
+  .arch-frame .label {
+    font-family: "Cinzel", serif;
+    font-size: 13px;
+    letter-spacing: 0.2em;
+    text-transform: uppercase;
+    color: var(--ink-soft);
+  }
+
+  /* Double rule invitation frame */
+  .invite-frame {
+    max-width: 560px;
+    margin: 0 auto;
+    border: 1px solid var(--gold);
+    padding: 6px;
+  }
+
+  .invite-frame .inner-rule {
+    border: 1px solid var(--gold-soft);
+    padding: 44px 32px;
+  }
+
+  .invite-frame .script {
+    font-family: "Pinyon Script", cursive;
+    font-size: 38px;
+    color: var(--wine);
+    margin: 0 0 12px;
+  }
+
+  .invite-frame .body {
+    font-size: 15px;
+    line-height: 1.8;
+    color: var(--ink-soft);
+  }
+
+  .skyline-wrap {
+    padding: 20px 24px 0;
+    overflow: hidden;
+    text-align: center;
+  }
+
+  .engraving {
+    mix-blend-mode: multiply;
+  }
+
+  .engraving-panorama {
+    width: 100%;
+    max-width: 1100px;
+    height: auto;
+    -webkit-mask-image: radial-gradient(ellipse 72% 62% at center, black 42%, transparent 86%);
+    mask-image: radial-gradient(ellipse 72% 62% at center, black 42%, transparent 86%);
+  }
+
+  .kalesa-wrap {
+    display: flex;
+    justify-content: center;
+    padding: 8px 0 20px;
+  }
+
+  .engraving-kalesa {
+    width: 400px;
+    max-width: 86vw;
+    height: auto;
+    -webkit-mask-image: radial-gradient(ellipse 82% 78% at center, black 52%, transparent 96%);
+    mask-image: radial-gradient(ellipse 82% 78% at center, black 52%, transparent 96%);
+  }
+
+  .arch-figure {
+    width: 300px;
+    height: 400px;
+    border-radius: 150px 150px 0 0;
+    border: 1px solid var(--gold);
+    padding: 10px;
+    margin: 0 auto 36px;
+    background: var(--ecru);
+  }
+
+  .arch-figure .inner {
+    width: 100%;
+    height: 100%;
+    border-radius: 140px 140px 0 0;
+    overflow: hidden;
+  }
+
+  .arch-figure img {
+    width: 100%;
+    height: 116%;
+    object-fit: cover;
+    object-position: center top;
+  }
+
+  /* Palette and type summary */
+  .plate-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+    gap: 40px 36px;
+    max-width: 1040px;
+    margin: 0 auto;
+    padding: 8px 24px 24px;
+  }
+
+  .plate-card { text-align: center; }
+
+  .plate-card img {
+    width: 100%;
+    height: auto;
+    mix-blend-mode: multiply;
+    -webkit-mask-image: radial-gradient(ellipse 78% 74% at center, black 48%, transparent 92%);
+    mask-image: radial-gradient(ellipse 78% 74% at center, black 48%, transparent 92%);
+  }
+
+  .plate-card .plate-title {
+    font-family: "Cinzel", serif;
+    font-size: 13px;
+    font-weight: 500;
+    letter-spacing: 0.22em;
+    text-transform: uppercase;
+    color: var(--burnt);
+    margin-top: 10px;
+  }
+
+  .plate-card .plate-note {
+    font-family: "IM Fell English", serif;
+    font-style: italic;
+    font-size: 14px;
+    color: var(--ink-soft);
+    margin-top: 4px;
+  }
+
+  .spec-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 32px;
+    max-width: 960px;
+    margin: 0 auto;
+    padding: 0 24px 72px;
+  }
+
+  @media (max-width: 760px) { .spec-grid { grid-template-columns: 1fr; } }
+
+  .spec-panel {
+    border: 1px solid var(--gold-soft);
+    background: rgba(234,223,198,0.45);
+    padding: 28px;
+    text-align: left;
+  }
+
+  .spec-panel h4 {
+    font-family: "Cinzel", serif;
+    font-size: 12px;
+    font-weight: 500;
+    letter-spacing: 0.24em;
+    text-transform: uppercase;
+    color: var(--burnt);
+    margin: 0 0 20px;
+  }
+
+  .swatches { display: flex; gap: 10px; flex-wrap: wrap; }
+
+  .swatch { flex: 1 1 90px; min-width: 90px; text-align: center; }
+  .swatch .chip { height: 56px; border: 1px solid rgba(43,43,43,0.18); margin-bottom: 7px; }
+  .swatch .name { font-size: 12px; font-weight: 600; }
+  .swatch .hex { font-size: 11px; color: var(--ink-soft); }
+
+  .type-row { margin-bottom: 22px; }
+  .type-row .demo-script { font-family: "Pinyon Script", cursive; font-size: 36px; color: var(--wine); }
+  .type-row .demo-serif { font-family: "Cinzel", serif; font-size: 22px; font-weight: 500; color: var(--ink); }
+  .type-row .demo-fell { font-family: "IM Fell English", serif; font-style: italic; font-size: 19px; color: var(--ink); }
+  .type-row .demo-body { font-family: "Alegreya", serif; font-size: 15px; line-height: 1.7; color: var(--ink-soft); }
+  .type-row .role { font-family: "Cinzel", serif; font-size: 11px; letter-spacing: 0.18em; text-transform: uppercase; color: var(--ink-soft); margin-top: 4px; }
+
+  footer {
+    text-align: center;
+    padding: 40px 24px 64px;
+    font-size: 12px;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: var(--ink-soft);
+  }
+</style>
+</head>
+<body>
+
+<div class="toggle-bar">
+  <button id="greyscaleToggle">View in greyscale</button>
+  <div class="note">Tone check. The wine script must still separate from ink at display size, and burnt orange labels from body text.</div>
+</div>
+
+<div id="canvas">
+
+<div class="embroidery-band"></div>
+
+<!-- HERO -->
+<div class="hero capiz-section">
+  <div class="eyebrow">La Boda &middot; Sabado &middot; Diez de Abril</div>
+  <h1 class="logo-wrap"><img class="logo-plate" src="../assets/engravings/monograms/logo-manuel-y-natasha-wide.png" alt="Manuel y Natasha, Tamayo, engraved copperplate calligraphy" /></h1>
+  <div class="serif-sub">SAN AGUSTIN CHURCH &middot; INTRAMUROS &middot; MANILA</div>
+  <div class="date-line">Saturday 10 April 2027 &middot; Four in the afternoon</div>
+
+  <div class="hero-baybayin">
+    <div class="glyphs">&#x170B;&#x1711;&#x170E;&#x1714;</div>
+    <div class="gloss">mahal &middot; love, in baybayin</div>
+  </div>
+</div>
+
+<!-- INTRAMUROS PANORAMA ENGRAVING -->
+<div class="skyline-wrap">
+  <img class="engraving engraving-panorama" src="../assets/engravings/intramuros-panorama.png" alt="Engraving of the walled city of Intramuros with its gates, San Agustin Church and the cathedral dome" />
+</div>
+
+<div class="divider">
+  <svg width="220" height="20" viewBox="0 0 220 20">
+    <path d="M0,10 C20,2 35,18 55,10 C75,2 90,18 110,10 C130,2 145,18 165,10 C185,2 200,18 220,10" stroke="#DCC383" stroke-width="1" fill="none"/>
+    <circle cx="110" cy="10" r="3" fill="#C1552C"/>
+  </svg>
+</div>
+
+<!-- SAMPLE SECTION WITH ARCHES -->
+<section class="sample">
+  <h2>Nuestra Historia</h2>
+  <h3>Our Story</h3>
+  <p class="lede">Photography placeholders sit inside arched frames, echoing the doors of San Agustin and the arcades of the old walled city. Prenup images drop straight into these shapes when they arrive.</p>
+  <div class="arch-row">
+    <div class="arch-frame"><div class="inner"><span class="label">Prenup 01</span></div></div>
+    <div class="arch-frame"><div class="inner"><span class="label">Prenup 02</span></div></div>
+    <div class="arch-frame"><div class="inner"><span class="label">Prenup 03</span></div></div>
+  </div>
+</section>
+
+<!-- KALESA ACCENT + CEREMONY SAMPLE -->
+<section class="sample capiz-section" style="padding-top:48px;">
+  <div class="kalesa-wrap">
+    <img class="engraving engraving-kalesa" src="../assets/engravings/kalesa.png" alt="Engraving of a kalesa, the horse drawn carriage of Old Manila, with its cochero holding the reins" />
+  </div>
+  <h2>La Ceremonia</h2>
+  <h3>The Ceremony</h3>
+  <div class="arch-figure">
+    <div class="inner">
+      <img class="engraving" src="../assets/engravings/san-agustin.png" alt="Engraving of the baroque facade of San Agustin Church, Intramuros" />
+    </div>
+  </div>
+  <div class="invite-frame">
+    <div class="inner-rule">
+      <div class="script">San Agustin Church</div>
+      <div class="body">
+        General Luna Street, Intramuros, Manila<br/>
+        Please be seated by half past three<br/>
+        The stones of the old city are uneven, wear footwear you can walk in
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- PLATE LIBRARY -->
+<section class="sample">
+  <h2>Las L&aacute;minas</h2>
+  <h3>The plates, one for every page</h3>
+  <div class="plate-grid">
+    <div class="plate-card">
+      <img class="engraving" src="../assets/engravings/harana.png" alt="Engraving of a harana, a moonlit serenade beneath a capiz shell window" />
+      <div class="plate-title">Nuestra Historia</div>
+      <div class="plate-note">A harana beneath the capiz window</div>
+    </div>
+    <div class="plate-card">
+      <img class="engraving" src="../assets/engravings/barong-terno.png" alt="Engraving fashion plate of a couple in barong tagalog and terno" />
+      <div class="plate-title">Dress Code</div>
+      <div class="plate-note">Barong Tagalog and terno, the fashion plate</div>
+    </div>
+    <div class="plate-card">
+      <img class="engraving" src="../assets/engravings/diamond-hotel.png" alt="Engraving of the Diamond Hotel tower on Roxas Boulevard beside Manila Bay" />
+      <div class="plate-title">Reception</div>
+      <div class="plate-note">The Diamond Hotel on Manila Bay, the Constellation Room</div>
+    </div>
+    <div class="plate-card">
+      <img class="engraving" src="../assets/engravings/jeepney.png" alt="Engraving of an ornately decorated jeepney" />
+      <div class="plate-title">Transport</div>
+      <div class="plate-note">The jeepney, heir of the kalesa</div>
+    </div>
+    <div class="plate-card">
+      <img class="engraving" src="../assets/engravings/jet-manila-bay.png" alt="Engraving of a modern jet over Manila Bay and the walled city" />
+      <div class="plate-title">Travel</div>
+      <div class="plate-note">Perth to Manila, drawn as it might have been</div>
+    </div>
+    <div class="plate-card">
+      <img class="engraving" src="../assets/engravings/bangka-sunset.png" alt="Engraving of a bangka outrigger on Manila Bay at sunset" />
+      <div class="plate-title">Things to Do</div>
+      <div class="plate-note">Manila Bay at sunset</div>
+    </div>
+  </div>
+</section>
+
+<!-- MAPS -->
+<section class="sample capiz-section" style="padding-top:48px;">
+  <h2>Los Mapas</h2>
+  <h3>Every road leads to Manila</h3>
+  <p class="lede">An antique route chart for the Travel page, dotted lines converging on Manila from Perth, from America, from Singapore.</p>
+  <div class="skyline-wrap" style="padding-top:0;">
+    <img class="engraving engraving-panorama" src="../assets/engravings/route-chart.png" alt="Antique nautical chart with sailing routes converging on Manila from Perth, America and Singapore" />
+  </div>
+</section>
+
+<!-- DRESS CODE PLATES -->
+<section class="sample">
+  <h2>El Vestuario</h2>
+  <h3>The dress code, plate by plate</h3>
+  <div class="plate-grid">
+    <div class="plate-card">
+      <img class="engraving" src="../assets/engravings/barong-gentlemen.png" alt="Tailor plate of the barong tagalog with collar and cuff embroidery details" />
+      <div class="plate-title">Para los Caballeros</div>
+      <div class="plate-note">Barong Tagalog in pina or jusi, untucked by design, dark trousers, no jacket, no tie</div>
+    </div>
+    <div class="plate-card" style="grid-column: span 2;">
+      <img class="engraving" src="../assets/engravings/filipiniana-ladies.png" alt="Dressmaker plate of three Filipiniana gown options, terno, Maria Clara and modern Filipiniana" />
+      <div class="plate-title">Para las Damas</div>
+      <div class="plate-note">Modern Filipiniana or Filipiniana themed, both welcome. Easy ready to wear options: a butterfly sleeve dress, a simple terno gown, an embroidered kimona with a plain skirt, or any modern piece that nods to Filipiniana, a butterfly sleeve, an embroidered panel, an ecru or earth tone palette. Purchasable off the rack, order six or more weeks ahead. Formal warm neutrals remain a graceful out.</div>
+    </div>
+  </div>
+</section>
+
+<div class="baybayin-divider">
+  <div class="glyph-row">
+    <div class="rule"></div>
+    <div class="glyphs">&#x170B;&#x1711;&#x170E;&#x1714;</div>
+    <div class="rule"></div>
+  </div>
+  <div class="gloss">mahal &middot; love, in baybayin</div>
+</div>
+
+<!-- SPEC PANELS -->
+<div class="spec-grid">
+  <div class="spec-panel">
+    <h4>Palette</h4>
+    <div class="swatches">
+      <div class="swatch"><div class="chip" style="background:#F5EDDD"></div><div class="name">Ecru</div><div class="hex">#F5EDDD</div></div>
+      <div class="swatch"><div class="chip" style="background:#6B1E36"></div><div class="name">Wine</div><div class="hex">#6B1E36</div></div>
+      <div class="swatch"><div class="chip" style="background:#C1552C"></div><div class="name">Burnt orange</div><div class="hex">#C1552C</div></div>
+      <div class="swatch"><div class="chip" style="background:#C9A227"></div><div class="name">Gold</div><div class="hex">#C9A227</div></div>
+      <div class="swatch"><div class="chip" style="background:#2B2B2B"></div><div class="name">Ink</div><div class="hex">#2B2B2B</div></div>
+    </div>
+    <p style="font-size:13px; line-height:1.7; color:var(--ink-soft); margin-top:18px;">
+      Wine is display only, script and monogram, never body text. Gold stays linework, borders and motifs. Burnt orange carries labels and small accents. Ink does the reading.
+    </p>
+  </div>
+
+  <div class="spec-panel">
+    <h4>Type package</h4>
+    <div class="type-row">
+      <div class="demo-script">Manuel y Natasha</div>
+      <div class="role">Pinyon Script &middot; names and section scripts only</div>
+    </div>
+    <div class="type-row">
+      <div class="demo-serif">THE WALLED CITY</div>
+      <div class="role">Cinzel &middot; headings, labels, inscriptions</div>
+    </div>
+    <div class="type-row">
+      <div class="demo-fell">In the old city, on the tenth of April</div>
+      <div class="role">IM Fell English Italic &middot; antique subtitles</div>
+    </div>
+    <div class="type-row">
+      <div class="demo-body">Body copy set in Alegreya, an old style serif with calligraphic bones, warm and readable on a phone at arm's length, which is how most guests will meet this site.</div>
+      <div class="role">Alegreya &middot; body copy</div>
+    </div>
+    <div class="type-row">
+      <div class="baybayin" style="font-size:26px; color:var(--gold);">&#x170B;&#x1711;&#x170E;&#x1714;</div>
+      <div class="role">Noto Sans Tagalog &middot; baybayin accents, always with a translation</div>
+    </div>
+  </div>
+</div>
+
+<div class="embroidery-band"></div>
+
+<footer>Manuel y Natasha &middot; Consolidated direction &middot; Kalesa and Intramuros accents included</footer>
+
+</div>
+
+<script>
+  document.getElementById('greyscaleToggle').addEventListener('click', function() {
+    var canvas = document.getElementById('canvas');
+    canvas.classList.toggle('greyscale');
+    this.textContent = canvas.classList.contains('greyscale') ? 'Back to colour' : 'View in greyscale';
+  });
+</script>
+
+</body>
+</html>
