@@ -52,7 +52,11 @@ Filipiniana heritage, Spanish Filipino register, Old Manila engraved folio. The 
 
 **Photography treatment (when prenup arrives)**: retrato style, warm sepia leaning duotone, arch mask, faint paper grain, thin gold frame, IM Fell italic caption like a museum label. The engraved panorama stays the permanent hero, photos live in arches below, they do not replace the illustration identity.
 
-**Voice**: English body copy with both Spanish Filipino and Tagalog accents used deliberately. Spanish register for the formal architecture (La Boda, Nuestra Historia, El Vestuario, Los Mapas, La Ceremonia). Tagalog for the warm and human moments (mahal, salamat, halina at magdiwang, kasal, pamilya, tuloy po kayo). Every non English word gets context or a small gloss nearby so international guests are never lost. Warm, personal, not stiff. Australian English. No hyphens or dashes anywhere in copy.
+**Voice, REVISED (Manny, September 2026)**: the Spanish formal register (La Boda, Nuestra Historia, El Vestuario, Los Mapas, La Ceremonia, Preguntas) is retired as section architecture. Manny's call: the site should read as old and deep Filipino, not overly Spanish. Section titles are now old Tagalog: Ang Kuwento Namin, Ang Kasal, Ang Handaan, Ang Paglalakbay, Ang Pasyal, Ang Kasuotan, Mga Tanong, Mga Balita. Spanish is not banned, it stays present as occasional colour, an ordinary Filipino loanword here and there (biyahe, detalye, Estados Unidos), and it stays for the church's actual name, Iglesia de San Agust&iacute;n, INTRAMUROS, MANILA in display lines, not Simbahan ng San Agustin. Spanish just does not carry whole section titles or headings anymore. English body copy still carries both a Tagalog original and an English gloss nearby so international guests are never lost, and the Tagalog should lean toward deep, old vocabulary (Maykapal, basbas, dambana, pagsapit, ilaan) rather than Spanish grand titles.
+
+Manila naming rule, AGREED (Manny, September 2026): Maynila inside Tagalog sentences, Manila inside English sentences, same city, each language uses its own name for it. Do not force one form into the other language's copy, that reproduces the same literal translation problem noted below.
+
+Craft note (Manny's actual complaint, September 2026): the first pass at this revision read forced, direct translated, message unclear. The fix is not more Tagalog words, it is better sentences. Avoid literal English to Tagalog translation and the reverse, each language version should sound native in itself, not like a crib of the other. Avoid listy, bolted on logistics sentences dropped after poetic copy (For now, save the date as a curt fragment is the kind of thing to catch). Avoid brochure abstractions and vague AI phrasing (the routes of our people converge, for example) in favour of grounded, concrete, specific phrasing, in the spirit of the filipino-literary-writer skill: restraint, specificity, real cadence, no cliche. Read every paragraph aloud before shipping it, if it sounds like a translated checklist, rewrite it. Warm, personal, not stiff. Australian English. No hyphens or dashes anywhere in copy.
 
 ## Experience blueprint for the build (step 2 onward)
 
@@ -87,6 +91,8 @@ Refused on principle: autoplay music, preloader screens, cursor gimmicks, parall
 8. RSVP, phase 2 build
 9. FAQ
 10. Updates archive
+
+Note (Manny, September 2026): the Los Mapas section was cut entirely from the homepage, copy read as corny and the section was redundant with the travel page itself. The route-chart.png map plate and its "every road leads to Manila" idea move to the travel/ page when it gets built, not the homepage. The kangaroo-spot.png margin illustration lost its home when the section was cut, not yet reassigned, decide a new spot for it (or drop it) before launch. The wattle-sampaguita-garland.png divider was also removed from the invitation section on the homepage, decide if it belongs elsewhere (Nuestra Historia is its other locked use) or is cut entirely.
 
 ## Travel page content
 
