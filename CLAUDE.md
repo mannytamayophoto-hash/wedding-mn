@@ -170,3 +170,4 @@ Resolved: domain is manuelynatasha.com, backend Gmail is manuelYnatashatamayo@gm
 - RSVP holding page now says stay tuned and asks for name, email address and number attending, with updates to follow by email.
 - Our Story (historia) is an under construction holding panel until the story is written.
 - Greyscale check run on Ceremony, Reception, RSVP, Travel, Things to Do and Our Story, hierarchy holds, no horizontal scroll at 390px.
+- Matched portrait pair on Our Story (historia): assets/engravings/portrait-manuel.jpg (barong, glasses, bust) and portrait-natasha.jpg (terno with lace pañuelo, pearls, bust). Both made from Manny's and Natasha's own photos at Manny's direction, paper tone levelled and cropped to the same size so they sit side by side. Layout class .portrait-pair in css/style.css. Greyscale and 390px checks pass.

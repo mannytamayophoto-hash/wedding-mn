@@ -631,3 +631,26 @@ footer.site-footer .mark {
   max-width: 190px;
   height: auto;
 }
+
+/* Matched engraved portrait pair, side by side, stacking on very narrow screens */
+.portrait-pair {
+  display: flex;
+  justify-content: center;
+  align-items: flex-start;
+  gap: 14px;
+  max-width: 640px;
+  margin: 0 auto;
+}
+.portrait-pair figure {
+  margin: 0;
+  flex: 1 1 0;
+  min-width: 0;
+}
+.portrait-pair .plate {
+  width: 100%;
+  height: auto;
+  display: block;
+}
+.portrait-pair figcaption {
+  margin-top: 8px;
+}
