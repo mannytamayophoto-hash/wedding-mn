@@ -171,3 +171,7 @@ Resolved: domain is manuelynatasha.com, backend Gmail is manuelYnatashatamayo@gm
 - Our Story (historia) is an under construction holding panel until the story is written.
 - Greyscale check run on Ceremony, Reception, RSVP, Travel, Things to Do and Our Story, hierarchy holds, no horizontal scroll at 390px.
 - Matched portrait pair on Our Story (historia): assets/engravings/portrait-manuel.jpg (barong, glasses, bust) and portrait-natasha.jpg (terno with lace pañuelo, pearls, bust). Both made from Manny's and Natasha's own photos at Manny's direction, paper tone levelled and cropped to the same size so they sit side by side. Layout class .portrait-pair in css/style.css. Greyscale and 390px checks pass.
+
+## Music, added October 2026 (Manny)
+
+Reverses the earlier cut on music, with the autoplay refusal kept. Two tracks, Rondang ng Araw and Pangako ng Araw (Manny's own files, compressed to 112kbps mp3 in site/assets/music/), play as an opt in background loop. The Musika button (fixed bottom right, built in js/main.js, styled .music-toggle) starts off on every first visit. The choice, track and position are stored in localStorage (mn_music_on, mn_music_track, mn_music_time) so playback carries across pages. If a browser blocks resuming on a fresh page, it picks up on the guest's first tap or key press. Nothing loads until the button is pressed.
