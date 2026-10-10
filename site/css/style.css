@@ -212,6 +212,38 @@ nav.site-nav a[aria-current="page"] {
   border-bottom-color: var(--gold);
 }
 
+/* Menu word swap. Phones and touch screens show English only. Wide screens
+   with a pointer show the Tagalog, and the English replaces it on hover or
+   keyboard focus. Both words share one grid cell so the item never changes width. */
+nav.site-nav a { display: inline-grid; }
+nav.site-nav a .nav-tl { display: none; }
+nav.site-nav a .nav-en { grid-area: 1 / 1; }
+
+@media (min-width: 721px) and (hover: hover) {
+  nav.site-nav a .nav-tl,
+  nav.site-nav a .nav-en { display: block; grid-area: 1 / 1; text-align: center; transition: opacity 0.18s ease; }
+  nav.site-nav a .nav-en { opacity: 0; }
+  nav.site-nav a:hover .nav-tl,
+  nav.site-nav a:focus-visible .nav-tl { opacity: 0; }
+  nav.site-nav a:hover .nav-en,
+  nav.site-nav a:focus-visible .nav-en { opacity: 1; }
+}
+
+nav.site-nav a:focus-visible { outline: 2px solid var(--gold); outline-offset: 3px; }
+
+nav.site-nav a.nav-rsvp {
+  border: 1px solid var(--gold);
+  padding: 4px 14px;
+  color: var(--ink);
+  border-radius: 2px;
+}
+nav.site-nav a.nav-rsvp:hover { background: var(--ecru-deep); color: var(--wine); }
+nav.site-nav a.nav-rsvp[aria-current="page"] { color: var(--burnt); border-bottom-color: var(--gold); }
+
+@media (prefers-reduced-motion: reduce) {
+  nav.site-nav a .nav-tl, nav.site-nav a .nav-en { transition: none; }
+}
+
 /* ---------- engraving plates ---------- */
 
 /* No feathering anywhere. Plates print straight onto the page with multiply,

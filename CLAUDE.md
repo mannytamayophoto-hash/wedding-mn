@@ -136,7 +136,7 @@ Note (Manny, September 2026): the Los Mapas section was cut entirely from the ho
 - Database: Google Sheets under the dedicated Gmail manuelYnatashatamayo@gmail.com, two tabs, InviteList and Responses.
 - API layer: Google Apps Script web app, also handles mail merge for segmented announcements.
 - Automated reminder to non responders on 1 January 2027.
-- Hosting: HostGator business account (cPanel), NOT Cloudflare Pages, changed when Manny confirmed he already holds HostGator, the domain manuelynatasha.com, and the Gmail. Deploy by uploading the static site/ folder via File Manager or FTP, no build step needed since it is plain HTML/CSS/JS. Enable free AutoSSL in cPanel so the site runs on https. Site itself is public, RSVP is gated by household code.
+- Hosting (updated October 2026): GitHub repo mannytamayophoto-hash/wedding-mn, master branch, auto deployed by Cloudflare as a Worker with static assets. wrangler.jsonc serves only the site/ folder, so this spec stays private. Push to master and it is live in about a minute at wedding-mn.mannytamayophoto.workers.dev. The domain manuelynatasha.com stays registered at HostGator with its nameservers pointed at Cloudflare. Site itself is public, RSVP is gated by household code.
 - QR codes on printed invites, each one encodes the invite URL with the household code prefilled.
 
 ## Build order
@@ -154,3 +154,12 @@ Work through these in order. Do not skip ahead.
 Shuttle details, kids and plus ones policy, entourage names, cocktail hour timing, photos (prenup pending), final logo sign off (current logotype is a working version, Manny will finalise eventually), entourage reserved colour.
 
 Resolved: domain is manuelynatasha.com, backend Gmail is manuelYnatashatamayo@gmail.com (Manny holds the password, never store it in this repo), hosting is Manny's HostGator business account with Cloudflare Pages as the alternative, gifts policy is money preferred (see above). Confirmed guest origin cities so far: Perth, San Francisco / USA, Tokyo / Japan, Singapore, the route chart and travel copy include all four.
+
+## Changes made October 2026 (Manny)
+
+- Save date card now reads: Sa biyaya ng Diyos at basbas ng aming mga pamilya, ikakasal na po kami sa Simbahan ng San Agustin, Intramuros, Maynila. Sabado, ikasampu ng Abril 2027. Sana'y makasama namin kayo. English gloss beneath. The heavier Maykapal wording was retired as too old for a modern tone.
+- Menu words show Tagalog on wide screens with English on hover or keyboard focus, English only on phones and touch screens. Home is Tahanan, Updates is Mga Balita. RSVP is a gold outlined button, plain RSVP everywhere.
+- rsvp/ is a holding page (Tugon) with guidelines for requesting an invitation by email to manuelynatashatamayo@gmail.com. Real RSVP form comes after launch.
+- Travel page has A Touch of Luxury (Makati, Bay City and Entertainment City). Manila Hotel removed. Sofitel Philippine Plaza closed in 2024, do not list it.
+- Things to Do: Poblacion removed from Evenings, new Makati and BGC restaurant list.
+- After launch: request form with Cloudflare Turnstile feeding the Google Sheet, and a send menu for email, Facebook helper and SMS.
