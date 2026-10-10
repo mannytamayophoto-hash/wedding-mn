@@ -654,3 +654,9 @@ footer.site-footer .mark {
 .portrait-pair figcaption {
   margin-top: 8px;
 }
+
+/* YouTube embeds */
+.video-embed { position: relative; width: 100%; max-width: 560px; aspect-ratio: 16 / 9; margin: 12px auto 6px; border: 1px solid var(--gold); padding: 5px; background: rgba(245,237,221,0.6); box-sizing: border-box; }
+.video-embed iframe { position: absolute; inset: 5px; width: calc(100% - 10px); height: calc(100% - 10px); border: 0; }
+.video-item { margin: 0 0 22px; text-align: center; }
+.video-item .caption { margin: 4px auto 0; max-width: 480px; }
