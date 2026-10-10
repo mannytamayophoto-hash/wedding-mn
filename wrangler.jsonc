@@ -2,6 +2,7 @@
 {
   "name": "wedding-mn",
   "compatibility_date": "2025-09-01",
+  "workers_dev": true,
   "assets": {
     "directory": "./site",
     "html_handling": "auto-trailing-slash",
