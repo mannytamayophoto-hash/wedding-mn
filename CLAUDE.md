@@ -163,3 +163,10 @@ Resolved: domain is manuelynatasha.com, backend Gmail is manuelYnatashatamayo@gm
 - Travel page has A Touch of Luxury (Makati, Bay City and Entertainment City). Manila Hotel removed. Sofitel Philippine Plaza closed in 2024, do not list it.
 - Things to Do: Poblacion removed from Evenings, new Makati and BGC restaurant list.
 - After launch: request form with Cloudflare Turnstile feeding the Google Sheet, and a send menu for email, Facebook helper and SMS.
+
+## Changes made October 2026, part two (Manny)
+
+- Nine new plates (Nano Banana 2.1, same house style, saved as 1600px JPG in assets/engravings): rsvp-seal (RSVP), cobblestone-gate (Ceremony arrival), woman-abanico and couple-parasol (Ceremony heat panel, paired), ninong-cord (godparents), chandelier-table and tinikling (Reception), compass-plane (Travel islands), tropical-banig (Things to Do Makati and BGC). The earlier fan and parasol still life was dropped at Manny's request.
+- RSVP holding page now says stay tuned and asks for name, email address and number attending, with updates to follow by email.
+- Our Story (historia) is an under construction holding panel until the story is written.
+- Greyscale check run on Ceremony, Reception, RSVP, Travel, Things to Do and Our Story, hierarchy holds, no horizontal scroll at 390px.
