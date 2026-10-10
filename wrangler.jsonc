@@ -1,0 +1,10 @@
+// Cloudflare config. Serves only the site folder, so the spec and design files stay private.
+{
+  "name": "wedding-mn",
+  "compatibility_date": "2025-09-01",
+  "assets": {
+    "directory": "./site",
+    "html_handling": "auto-trailing-slash",
+    "not_found_handling": "none"
+  }
+}
