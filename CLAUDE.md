@@ -157,7 +157,7 @@ Resolved: domain is manuelynatasha.com, backend Gmail is manuelYnatashatamayo@gm
 
 ## Changes made October 2026 (Manny)
 
-- Save date card now reads: Sa biyaya ng Diyos at basbas ng aming mga pamilya, ikakasal na po kami sa Simbahan ng San Agustin, Intramuros, Maynila. Sabado, ikasampu ng Abril 2027. Sana'y makasama namin kayo. English gloss beneath. The heavier Maykapal wording was retired as too old for a modern tone.
+- Save date card now reads: Sa biyaya ng Diyos, ikakasal na po kami sa Simbahan ng San Agustin, Intramuros, Maynila. Sabado, ikasampu ng Abril 2027. Sana'y makasama namin kayo. English gloss beneath. The heavier Maykapal wording was retired as too old for a modern tone.
 - Menu words show Tagalog on wide screens with English on hover or keyboard focus, English only on phones and touch screens. Home is Tahanan, Updates is Mga Balita. RSVP is a gold outlined button, plain RSVP everywhere.
 - rsvp/ is a holding page (Tugon) with guidelines for requesting an invitation by email to manuelynatashatamayo@gmail.com. Real RSVP form comes after launch.
 - Travel page has A Touch of Luxury (Makati, Bay City and Entertainment City). Manila Hotel removed. Sofitel Philippine Plaza closed in 2024, do not list it.
