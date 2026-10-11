@@ -662,7 +662,7 @@ footer.site-footer .mark {
 .video-item .caption { margin: 4px auto 0; max-width: 480px; }
 
 /* Music toggle, opt in */
-.music-toggle { position: fixed; right: 14px; bottom: 14px; z-index: 50; display: inline-flex; align-items: center; gap: 8px; padding: 9px 14px; font-family: 'Cinzel', serif; font-size: 11px; letter-spacing: 0.16em; text-transform: uppercase; color: var(--ink); background: var(--ecru, #F5EDDD); border: 1px solid var(--gold); border-radius: 999px; cursor: pointer; box-shadow: 0 1px 6px rgba(43,43,43,0.18); }
+.music-toggle { position: fixed; right: 14px; bottom: 14px; z-index: 50; display: inline-flex; align-items: center; gap: 9px; padding: 10px 16px; font-family: 'Cinzel', serif; font-size: 12px; letter-spacing: 0.16em; text-transform: uppercase; color: var(--ink); background: var(--ecru, #F5EDDD); border: 1.5px solid var(--gold); border-radius: 999px; cursor: pointer; box-shadow: 0 2px 10px rgba(43,43,43,0.26); }
 .music-toggle:hover, .music-toggle:focus-visible { border-color: var(--burnt); outline: none; }
 .music-toggle:focus-visible { box-shadow: 0 0 0 2px var(--burnt); }
 .music-toggle .music-state { color: var(--burnt); font-weight: 600; }

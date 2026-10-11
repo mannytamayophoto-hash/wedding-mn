@@ -86,8 +86,9 @@
   });
 })();
 
-/* Background music, opt in. Off until a guest presses the button.
-   The choice, track and position are remembered so it carries across pages. */
+/* Background music, on by default. Browsers block sound until a guest
+   interacts, so it starts on their first tap or key press. A guest who turns
+   it off stays off. The choice, track and position carry across pages. */
 (function () {
   "use strict";
 
@@ -112,6 +113,7 @@
 
   var btn;
   var lastSave = 0;
+  var skipClick = false;
 
   function paint(on) {
     if (!btn) return;
@@ -168,10 +170,14 @@
       '<circle cx="16.5" cy="16" r="2.5" fill="none" stroke="currentColor" stroke-width="1.6"/></svg>' +
       '<span class="music-label">Musika</span><span class="music-state">Off</span>';
     btn.addEventListener("click", function () {
+      if (skipClick) { skipClick = false; return; }
       if (audio.paused) { play(); } else { pause(); }
     });
     document.body.appendChild(btn);
-    paint(false);
+
+    /* No saved choice yet means music is on by default. */
+    if (get(KEY_ON) === null) set(KEY_ON, "1");
+    paint(get(KEY_ON) === "1");
 
     if (get(KEY_ON) === "1") {
       var t = parseFloat(get(KEY_TIME));
@@ -184,12 +190,17 @@
       var p = audio.play();
       if (p && p.then) {
         p.then(function () { paint(true); }).catch(function () {
-          /* Browser blocked resuming on a fresh page. The guest chose music on,
-             so pick it up on their first tap or key press. */
-          paint(false);
-          var resume = function () {
+          /* Browser blocked sound before any interaction. Keep showing On,
+             and start on the guest's first tap or key press. If that first
+             press is the button itself, treat it as turning music off. */
+          var resume = function (e) {
             document.removeEventListener("pointerdown", resume, true);
             document.removeEventListener("keydown", resume, true);
+            if (e && e.target && btn.contains(e.target)) {
+              skipClick = true;
+              pause();
+              return;
+            }
             if (get(KEY_ON) === "1" && audio.paused) play();
           };
           document.addEventListener("pointerdown", resume, true);
