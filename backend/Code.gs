@@ -57,6 +57,24 @@ const HEADERS = {
   QR: ['code', 'household', 'url']
 };
 
+// Run once from the script editor after pasting the Sheet ID. Names the first tab
+// InviteList and adds the Responses and Log tabs with their headers. Safe to run
+// again, it never changes a tab that already exists.
+const RESPONSE_HEADERS = ['code', 'attending', 'guests_json', 'headcount', 'dietary', 'song',
+  'hotel_interest', 'flight_interest', 'email', 'message', 'source', 'created_at', 'updated_at'];
+
+function setupTabs() {
+  const book = SpreadsheetApp.openById(SHEET_ID);
+  if (!book.getSheetByName(TAB.invite)) book.getSheets()[0].setName(TAB.invite);
+  [[TAB.responses, RESPONSE_HEADERS], [TAB.log, HEADERS.Log]].forEach(function (pair) {
+    if (book.getSheetByName(pair[0])) return;
+    const sheet = book.insertSheet(pair[0]);
+    sheet.getRange(1, 1, 1, pair[1].length).setValues([pair[1]]);
+    sheet.setFrozenRows(1);
+  });
+  Logger.log('Tabs ready: ' + book.getSheets().map(function (s) { return s.getName(); }).join(', '));
+}
+
 // Web app entry points
 
 function doGet(e) {

@@ -9,36 +9,23 @@ Keep these private: the spreadsheet link, the Sheet ID, the web app URL until st
 You need:
 
 1. The wedding Google account, signed in in your browser. Use a normal browser window, not a private one.
-2. Your private draft of the invite list, the one kept in your Google Drive. Keep it open in another tab.
+2. The spreadsheet called Wedding RSVP. It already holds the guest list in the right columns, shared to the wedding account from Manny's own Drive.
 3. The file `backend/Code.gs` from the GitHub repo. Open it on GitHub, click the Raw button, then select all and copy the text.
 
-## Step 1. Create the spreadsheet
+## Step 1. Get your own copy of the spreadsheet
 
-1. Go to sheets.google.com and click Blank.
-2. Click the file name at the top left and rename it to Wedding RSVP.
-3. Rename the first tab to InviteList. Click the tab name, choose Rename, and type InviteList.
-4. In row 1 of InviteList, type these headers, one per cell from column A to column J:
+1. In the wedding account, go to drive.google.com and click Shared with me.
+2. Open the file called Wedding RSVP.
+3. Click File, then Make a copy. Keep the name Wedding RSVP and click Make a copy.
+4. The copy opens in a new tab. This copy belongs to the wedding account, and it is the one the script will use. Close the original tab so you do not edit it by mistake.
 
-   code, household, guest_name, max_party, email, phone, channel, segment, language, notes
+## Step 2. Check the invite list
 
-5. Add a second tab with the plus button at the bottom left. Rename it to Responses. In row 1, type these headers from column A to column M:
-
-   code, attending, guests_json, headcount, dietary, song, hotel_interest, flight_interest, email, message, source, created_at, updated_at
-
-6. Add a third tab and rename it to Log. In row 1, type these headers from column A to column C:
-
-   timestamp, code, outcome
-
-The tabs SendList, ManualReminders and QR are created by the script itself, so you do not make them.
-
-## Step 2. Fill in the invite list
-
-1. Click the InviteList tab.
-2. Copy the rows from your private draft and paste them starting in row 2, keeping the same column order.
-3. Leave the code column blank for now. The script fills it in at step 5.
-4. Keep each household's rows together, one row per named person. Leave the guest_name cell blank on a row if you want to hold an open seat for a plus one. Set max_party to the most people that household may bring, repeated on every row for that household.
-5. Use these values for channel: email, sms, messenger, whatsapp, viber or inperson.
-6. Use en for English or tl for Tagalog in the language column.
+1. Look at the first tab. Each row is one person or one open seat, grouped by household, with the code column empty. That is correct for now.
+2. Fill in email, phone and channel when you know them. Use these values for channel: email, sms, messenger, whatsapp, viber or inperson. You can do this later too.
+3. The language column is en for English or tl for Tagalog.
+4. Leave the code column blank for now. The script fills it in at step 5.
+5. Keep each household's rows together. A blank guest_name on a row is an open seat. max_party is the most people that household may bring, repeated on every row for that household.
 
 This sheet holds real names and contact details. Keep the spreadsheet link private.
 
@@ -57,13 +44,15 @@ This sheet holds real names and contact details. Keep the spreadsheet link priva
 2. Under Time zone, choose Asia/Manila (GMT+08:00).
 3. This matters because the 15 January 2027 cutoff and the 1 January 2027 reminder are both Manila times.
 
-## Step 5. Create the household codes
+## Step 5. Set up the tabs and create the household codes
 
 1. Click the Editor icon in the left menu to go back to the code.
-2. In the toolbar, use the function dropdown and choose generateCodes.
+2. In the toolbar, use the function dropdown and choose setupTabs.
 3. Press Run.
 4. A window asks you to authorise the script. Choose Review permissions, pick the wedding account, then click Advanced and Go to Wedding RSVP. Click Allow. Google shows this warning because the script is new and private, not because anything is wrong.
-5. Go back to the spreadsheet. Every household now has a six letter code in column A of InviteList, with the same code on each row for that household.
+5. Go back to the spreadsheet. The first tab is now called InviteList, and there are new tabs called Responses and Log.
+6. Back in the script editor, choose generateCodes in the function dropdown and press Run.
+7. Go back to the spreadsheet. Every household now has a six letter code in column A of InviteList, with the same code on each row for that household.
 
 You can run generateCodes again later when you add households. It only fills in blank codes, so codes already given out never change. Keep each household's rows together so they share a code.
 
