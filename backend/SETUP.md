@@ -100,6 +100,10 @@ The script has a switch called DRY_RUN, set to true when you first paste it. Whi
 
 Only after the log looks right, change DRY_RUN in the script editor from true to false, then click Save. Keep it true until then.
 
+### The daily email limit
+
+A free Gmail account may send to only 100 recipients a day through Apps Script. Confirmations to guests count towards that too. The script stops at 80 emails in any 24 hours and writes email_deferred in the Log tab for each one it skips. A reminder that was skipped is not marked as sent, so run sendReminders again the next day and it carries on from where it stopped. If you ever see email_failed in the Log tab, the reply was still saved, only the email did not go.
+
 ## Step 9. Set the 1 January reminder
 
 1. In the script editor, click the clock icon labelled Triggers in the left menu.
@@ -128,6 +132,6 @@ The reminder runs once. It emails only households that have an email and have no
 
 ## Things never to do
 
-- Do not paste the spreadsheet link, the Sheet ID or the web app URL into GitHub or any public place.
+- Do not paste the spreadsheet link or the Sheet ID into GitHub or any public place. The web app URL is the one exception: it goes into the website code in a later stage, and that is meant to be public.
 - Do not share your Google password with anyone or put it in a file. The script never needs it.
 - Do not create a New deployment for a change. Use New version instead.

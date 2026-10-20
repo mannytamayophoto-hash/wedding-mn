@@ -23,9 +23,14 @@ const FROM_NAME = 'Manuel y Natasha';
 // Set it to false in the script editor only after the dry run looks right.
 const DRY_RUN = true;
 
+// A free Gmail account may send to 100 recipients a day through Apps Script.
+// Stay under it. Anything over the limit is skipped and logged, and the next
+// run carries on from where this one stopped.
+const DAILY_EMAIL_LIMIT = 80;
+
 // Lockout. Apps Script cannot see the visitor address, so this limit is shared
 // by everyone: more than MAX_FAILS failed attempts in the window blocks new ones.
-const MAX_FAILS = 8;
+const MAX_FAILS = 30;
 const FAIL_WINDOW_MINUTES = 15;
 
 // No I or O, and no 0 or 1, so codes cannot be misread when typed or printed.
@@ -286,14 +291,34 @@ function sendReminders() {
 }
 
 // Sends the mail, or logs it while DRY_RUN is on. Returns true only when a real
-// message went out, so a dry run never marks a household as reminded.
+// message went out, so a dry run, a skipped send or a failed send never marks a
+// household as reminded. A mail error never stops a guest's reply being saved.
 function send_(to, subject, body, kind) {
   if (DRY_RUN) {
     Logger.log('DRY RUN ' + kind + ' to ' + to + ': ' + subject);
     return false;
   }
-  GmailApp.sendEmail(to, subject, body, { name: FROM_NAME });
+  if (emailsSentLast24h_() >= DAILY_EMAIL_LIMIT) {
+    logAttempt_('', 'email_deferred');
+    Logger.log('Daily limit reached, not sent: ' + kind + ' to ' + to);
+    return false;
+  }
+  try {
+    GmailApp.sendEmail(to, subject, body, { name: FROM_NAME });
+  } catch (err) {
+    logAttempt_('', 'email_failed');
+    Logger.log('Email failed: ' + kind + ' to ' + to + ': ' + err);
+    return false;
+  }
+  logAttempt_('', 'email_sent');
   return true;
+}
+
+function emailsSentLast24h_() {
+  const since = Date.now() - 24 * 60 * 60 * 1000;
+  return outputSheet_(TAB.log).getDataRange().getValues().slice(1).filter(function (r) {
+    return r[2] === 'email_sent' && new Date(r[0]).getTime() >= since;
+  }).length;
 }
 
 function reminderBody_(hh) {
