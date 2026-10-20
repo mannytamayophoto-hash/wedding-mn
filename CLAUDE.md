@@ -125,19 +125,25 @@ Note (Manny, September 2026): the Los Mapas section was cut entirely from the ho
 
 ## RSVP system (phase 2 build)
 
-The working build plan for the RSVP is in RSVP_PLAN.md at the repo root. Read it before touching anything RSVP related. Where it disagrees with this section or Backend architecture below, the plan wins, and step 1 of the plan rewrites both sections to match.
+The working build plan for the RSVP is in RSVP_PLAN.md at the repo root. Read it before touching anything RSVP related. Where it disagrees with this section or Backend architecture below, the plan wins.
 
-- Invite only. Unique code per household, format TAMAYO-0412, tied to a maximum party size.
-- No code, no RSVP.
-- Editable up to the 15 January 2027 cutoff.
-- Fields: attending yes/no, headcount within the household maximum, guest names, dietary requirements, song request, interest flag for the Diamond Hotel room block (TBC), interest flag for airline group rates (TBC).
-- Automated confirmation email on submit.
+- Invite only. Each household gets a random six character code, drawn from ABCDEFGHJKLMNPQRSTUVWXYZ23456789 (no I, O, 0 or 1). Example shape: K7M4QX. Codes never use names, so a code reveals nothing about a family.
+- No code, no RSVP. The lookup returns only the household that owns the code.
+- Per guest answers. The form shows one yes or no for each named guest. Open plus one seats appear only where max_party is higher than the named guests, as a free name field.
+- Email is required on every reply, for the confirmation and any later change. A household with no email still gets a code and a link.
+- Replies are edited in place, one row per household, until the 15 January 2027 cutoff at 23:59 Manila time. The server enforces the cutoff, not the browser clock.
+- Fields: attending per guest (yes, no or partial overall), headcount within max_party, dietary requirements, song request, message to the couple, and interest flags for the Diamond Hotel room block and airline group rates. Both flags stay hidden until those rates are confirmed.
+- Manual entries are allowed. Manny or Natasha can type a reply straight into Responses for a relative who will never use the form, and the form reads it back.
+- Confirmation email on submit, from the wedding Gmail, with the invitation wording above the answers.
 
 ## Backend architecture
 
-- Database: Google Sheets under the dedicated Gmail manuelYnatashatamayo@gmail.com, two tabs, InviteList and Responses.
-- API layer: Google Apps Script web app, also handles mail merge for segmented announcements.
-- Automated reminder to non responders on 1 January 2027.
+- Database: a Google Sheet named Wedding RSVP in the dedicated wedding Gmail (manuelYnatashatamayo@gmail.com). Tabs: InviteList (private, one row per guest), Responses (one row per household) and Log (failed lookups and reminders sent, codes only, no names or emails). The script creates SendList, ManualReminders and QR when it runs its export functions.
+- API layer: Google Apps Script web app, source in backend/Code.gs, setup steps in backend/SETUP.md. Lookup is a GET carrying only the code. Submit is a POST with JSON sent as text/plain, so the browser makes no preflight request. The web app URL is public by nature and goes into site/js/rsvp.js. Deploy as Me with access Anyone, and update with New version, never New deployment, so the URL never changes.
+- Lockout: more than 8 failed lookups in 15 minutes blocks new attempts for everyone. Apps Script cannot see the visitor address, so the limit is shared rather than per visitor.
+- Reminders: a time trigger runs sendReminders on 1 January 2027 at 9am Manila. It emails households with an address and no reply, and lists the rest in ManualReminders for Manny to send by hand.
+- Send channels: email goes out from the Gmail script (mail merge, build step 4). SMS goes out from Manny's Mac through Messages and iPhone text forwarding (step 4b). Messenger, WhatsApp and Viber stay manual, from the SendList tab.
+- DRY_RUN is true in the script when first pasted. Anything that sends mail logs instead of sending until Manny switches it off after checking the log.
 - Hosting (updated October 2026): GitHub repo mannytamayophoto-hash/wedding-mn, master branch, auto deployed by Cloudflare as a Worker with static assets. wrangler.jsonc serves only the site/ folder, so this spec stays private. Push to master and it is live in about a minute at wedding-mn.mannytamayophoto.workers.dev. The domain manuelynatasha.com stays registered at HostGator with its nameservers pointed at Cloudflare. Site itself is public, RSVP is gated by household code.
 - QR codes on printed invites, each one encodes the invite URL with the household code prefilled.
 
