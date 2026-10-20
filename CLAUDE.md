@@ -125,6 +125,8 @@ Note (Manny, September 2026): the Los Mapas section was cut entirely from the ho
 
 ## RSVP system (phase 2 build)
 
+The working build plan for the RSVP is in RSVP_PLAN.md at the repo root. Read it before touching anything RSVP related. Where it disagrees with this section or Backend architecture below, the plan wins, and step 1 of the plan rewrites both sections to match.
+
 - Invite only. Unique code per household, format TAMAYO-0412, tied to a maximum party size.
 - No code, no RSVP.
 - Editable up to the 15 January 2027 cutoff.
