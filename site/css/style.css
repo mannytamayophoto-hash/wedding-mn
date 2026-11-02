@@ -669,3 +669,20 @@ footer.site-footer .mark {
 .music-toggle.is-on { background: var(--ink); color: #F5EDDD; }
 .music-toggle.is-on .music-state { color: #E8C95C; }
 @media print { .music-toggle { display: none; } }
+
+/* RSVP form, invite only */
+.rsvp-title { font-family: "Cinzel", serif; font-size: 13px; font-weight: 600; letter-spacing: 0.22em; text-transform: uppercase; color: var(--burnt); margin: 0 0 14px; }
+.rsvp-form { display: block; text-align: left; }
+.rsvp-label { display: block; font-family: "Cinzel", serif; font-size: 12px; letter-spacing: 0.16em; text-transform: uppercase; color: var(--ink); margin: 14px 0 6px; }
+.rsvp-input { display: block; width: 100%; box-sizing: border-box; padding: 10px 12px; font: inherit; font-family: "Alegreya", serif; font-size: 17px; color: var(--ink); background: var(--ecru, #F5EDDD); border: 1px solid var(--gold); border-radius: 0; }
+.rsvp-input:focus-visible, .rsvp-choice:focus-visible, .rsvp-check input:focus-visible { outline: 2px solid var(--burnt); outline-offset: 2px; }
+.rsvp-guest { margin: 0 0 16px; padding-bottom: 14px; border-bottom: 1px solid var(--gold-soft); }
+.rsvp-name { font-family: "Alegreya", serif; font-size: 18px; margin: 0 0 8px; color: var(--ink); }
+.rsvp-guest .rsvp-input { margin-bottom: 8px; }
+.rsvp-toggle { display: flex; flex-wrap: wrap; gap: 8px; }
+.rsvp-choice { flex: 1 1 200px; min-height: 44px; cursor: pointer; font-family: "Cinzel", serif; font-size: 12px; letter-spacing: 0.1em; text-transform: uppercase; }
+.rsvp-choice[aria-pressed="true"] { background: var(--ink); color: var(--ecru, #F5EDDD); border-color: var(--ink); }
+.rsvp-check { display: flex; gap: 10px; align-items: flex-start; margin: 12px 0 0; font-family: "Alegreya", serif; font-size: 16px; }
+.rsvp-error { color: var(--ink); font-family: "IM Fell English", serif; font-style: italic; font-size: 16px; border-left: 3px solid var(--burnt); padding: 4px 0 4px 10px; margin: 14px 0 0; }
+.rsvp-error[hidden] { display: none; }
+#rsvp-app[hidden], #rsvp-form[hidden], #rsvp-done[hidden], #rsvp-code[hidden] { display: none; }

@@ -4,11 +4,11 @@
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1.0" />
 <title>Tugon &middot; RSVP</title>
-<meta name="description" content="RSVP for Manuel and Natasha's wedding opens soon. How to request your personal invitation." />
+<meta name="description" content="RSVP for Manuel and Natasha's wedding. Invite only, with the code from your invitation." />
 <meta property="og:type" content="website" />
 <meta property="og:site_name" content="Manuel y Natasha" />
 <meta property="og:title" content="Tugon &middot; RSVP" />
-<meta property="og:description" content="RSVP for Manuel and Natasha's wedding opens soon. How to request your personal invitation." />
+<meta property="og:description" content="RSVP for Manuel and Natasha's wedding. Invite only, with the code from your invitation." />
 <meta property="og:url" content="https://manuelynatasha.com/rsvp/" />
 <meta property="og:image" content="https://manuelynatasha.com/assets/og-image.jpg" />
 <meta property="og:image:width" content="1200" />
@@ -39,8 +39,8 @@
   <a href="../rsvp/" class="nav-rsvp" aria-current="page"><span class="nav-tl">RSVP</span><span class="nav-en" aria-hidden="true">RSVP</span></a>
 </nav>
 
-<!-- RSVP HOLDING PAGE -->
-<section class="block center" style="padding-top: 24px;">
+<!-- RSVP HOLDING NOTE. Shown until SCRIPT_URL is set in js/rsvp.js. -->
+<section class="block center" id="rsvp-holding" style="padding-top: 24px;">
   <div class="container narrow">
     <div class="reveal" style="margin: 10px 0 16px;">
       <img width="1600" height="1073" class="plate" src="../assets/engravings/rsvp-seal.jpg" alt="Engraving of a sealed letter with a quill, an inkwell and a wax seal stamp" style="width: min(400px, 100%);" loading="lazy" />
@@ -76,6 +76,81 @@
   </div>
 </section>
 
+<!-- RSVP APP. Hidden until js/rsvp.js is switched on. Invite only, gated by the household code. -->
+<section class="block center" id="rsvp-app" hidden style="padding-top: 24px;">
+  <div class="container narrow">
+    <div class="reveal" style="margin: 10px 0 16px;">
+      <img width="1600" height="1073" class="plate" src="../assets/engravings/rsvp-seal.jpg" alt="Engraving of a sealed letter with a quill, an inkwell and a wax seal stamp" style="width: min(400px, 100%);" loading="lazy" />
+    </div>
+    <h1 class="section-head reveal">Tugon</h1>
+    <p class="caption reveal" style="margin: 4px auto 18px;">RSVP</p>
+
+    <!-- Step 1, code entry -->
+    <section class="panel reveal" id="rsvp-code" aria-labelledby="rsvp-code-title">
+      <h2 class="rsvp-title" id="rsvp-code-title">Household code</h2>
+      <p class="caption" style="margin: 0 0 14px;">Ang code po ay nasa inyong imbitasyon. The code is on your invitation.</p>
+      <form id="rsvp-code-form" class="rsvp-form" novalidate>
+        <label for="rsvp-code-input" class="rsvp-label">Code</label>
+        <input id="rsvp-code-input" class="rsvp-input" type="text" autocomplete="off" autocapitalize="characters" spellcheck="false" maxlength="12" />
+        <p class="rsvp-error" id="rsvp-code-error" role="alert" hidden></p>
+        <p style="margin: 14px 0 0; text-align: center;">
+          <button class="btn" type="submit">Find our invitation</button>
+        </p>
+      </form>
+    </section>
+
+    <!-- Step 2, the invitation and the reply -->
+    <div id="rsvp-form" hidden>
+      <section id="invitation" class="invite-letter invite-frame reveal" aria-labelledby="rsvp-household">
+        <div class="inner-rule">
+          <h2 class="invite-to script" id="rsvp-household"></h2>
+          <div class="invite-body">
+            <p style="margin: 0 0 10px;">Buong galak po namin kayong inaanyayahan sa aming kasal, sa ikasampu ng Abril, dalawang libo dalawampu't pito, ikaapat ng hapon, sa Simbahan ng San Agustin, Intramuros, Maynila.</p>
+            <p class="caption" style="margin: 0 0 14px;">With great joy we invite you to our wedding, on the tenth of April, two thousand and twenty seven, at four in the afternoon, at San Agustin Church, Intramuros, Manila.</p>
+            <p style="margin: 0;">Saturday, 10 April 2027, 4:00pm<br />Reception to follow at the Diamond Hotel Manila, Constellation Room</p>
+          </div>
+        </div>
+      </section>
+
+      <section id="reply" class="panel reveal" style="margin-top: 22px;" aria-labelledby="rsvp-reply-title">
+        <h2 class="rsvp-title" id="rsvp-reply-title">Our reply</h2>
+        <form id="rsvp-reply" class="rsvp-form" novalidate>
+          <div id="rsvp-guests"></div>
+
+          <label for="rsvp-email" class="rsvp-label">Email</label>
+          <input id="rsvp-email" class="rsvp-input" type="email" autocomplete="email" required />
+          <p class="caption" style="margin: 4px 0 14px;">Used for the confirmation and for any changes to the day.</p>
+
+          <label for="rsvp-dietary" class="rsvp-label">Dietary requirements</label>
+          <textarea id="rsvp-dietary" class="rsvp-input" rows="2"></textarea>
+
+          <label for="rsvp-song" class="rsvp-label">Song request</label>
+          <input id="rsvp-song" class="rsvp-input" type="text" />
+
+          <label for="rsvp-message" class="rsvp-label">Message to the couple</label>
+          <textarea id="rsvp-message" class="rsvp-input" rows="3"></textarea>
+
+          <div id="rsvp-flags" hidden>
+            <label class="rsvp-check"><input id="rsvp-hotel" type="checkbox" /> Interested in the Diamond Hotel room block</label>
+            <label class="rsvp-check"><input id="rsvp-flight" type="checkbox" /> Interested in the airline group rate</label>
+          </div>
+
+          <p class="rsvp-error" id="rsvp-reply-error" role="alert" hidden></p>
+          <p style="margin: 16px 0 0; text-align: center;">
+            <button class="btn" id="rsvp-submit" type="submit">Send our reply</button>
+          </p>
+        </form>
+      </section>
+    </div>
+
+    <!-- Step 3, confirmation -->
+    <section class="panel reveal" id="rsvp-done" hidden aria-live="polite">
+      <h2 class="rsvp-title">Natanggap po namin. Received.</h2>
+      <div id="rsvp-done-body"></div>
+    </section>
+  </div>
+</section>
+
 <footer class="site-footer">
   <div style="display: flex; justify-content: center; align-items: flex-end; gap: 18px; margin: 0 auto 6px;">
     <img loading="lazy" decoding="async" width="480" height="480" class="spot" src="../assets/engravings/spots/quokka-spot.webp" alt="" style="width: 90px;" />
@@ -88,5 +163,6 @@
 <div class="baybayin-band" aria-hidden="true" title="Manuel at Natasha, in baybayin">&#x170B;&#x1708;&#x1713;&#x1701;&#x170E;&#x1714; &#x1700;&#x1706;&#x1714; &#x1708;&#x1706;&#x1710; &middot; &#x170B;&#x1708;&#x1713;&#x1701;&#x170E;&#x1714; &#x1700;&#x1706;&#x1714; &#x1708;&#x1706;&#x1710; &middot; &#x170B;&#x1708;&#x1713;&#x1701;&#x170E;&#x1714; &#x1700;&#x1706;&#x1714; &#x1708;&#x1706;&#x1710; &middot; &#x170B;&#x1708;&#x1713;&#x1701;&#x170E;&#x1714; &#x1700;&#x1706;&#x1714; &#x1708;&#x1706;&#x1710; &middot; &#x170B;&#x1708;&#x1713;&#x1701;&#x170E;&#x1714; &#x1700;&#x1706;&#x1714; &#x1708;&#x1706;&#x1710; &middot; &#x170B;&#x1708;&#x1713;&#x1701;&#x170E;&#x1714; &#x1700;&#x1706;&#x1714; &#x1708;&#x1706;&#x1710; &middot; &#x170B;&#x1708;&#x1713;&#x1701;&#x170E;&#x1714; &#x1700;&#x1706;&#x1714; &#x1708;&#x1706;&#x1710; &middot; &#x170B;&#x1708;&#x1713;&#x1701;&#x170E;&#x1714; &#x1700;&#x1706;&#x1714; &#x1708;&#x1706;&#x1710;</div>
 
 <script src="../js/main.js"></script>
+<script src="../js/rsvp.js"></script>
 </body>
 </html>
