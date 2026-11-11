@@ -669,3 +669,9 @@ footer.site-footer .mark {
 .music-toggle.is-on { background: var(--ink); color: #F5EDDD; }
 .music-toggle.is-on .music-state { color: #E8C95C; }
 @media print { .music-toggle { display: none; } }
+
+/* Our Story card while the page is under construction, not a link */
+.nav-card-closed { cursor: default; }
+.nav-card-closed img { opacity: 0.55; }
+.nav-card-closed:hover img { transform: none; }
+.nav-card-closed .card-soon { margin-top: 6px; font-family: 'Cinzel', serif; font-size: 11px; letter-spacing: 0.16em; text-transform: uppercase; color: var(--burnt); }
