@@ -212,3 +212,20 @@
 
   document.addEventListener("DOMContentLoaded", build);
 })();
+
+/* Phone menu: one Menu button, RSVP stays visible. Without JS the full menu shows. */
+(function () {
+  var nav = document.querySelector('nav.site-nav');
+  if (!nav) return;
+  var btn = document.createElement('button');
+  btn.type = 'button';
+  btn.className = 'nav-toggle';
+  btn.textContent = 'Menu';
+  btn.setAttribute('aria-expanded', 'false');
+  btn.addEventListener('click', function () {
+    var open = nav.classList.toggle('open');
+    btn.setAttribute('aria-expanded', open ? 'true' : 'false');
+  });
+  nav.insertBefore(btn, nav.firstChild);
+  nav.classList.add('has-toggle');
+})();

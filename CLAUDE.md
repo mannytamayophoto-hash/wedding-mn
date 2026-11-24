@@ -205,7 +205,8 @@ Replaces the household code plan. RSVP_PLAN.md is superseded and kept for histor
 - Homepage order: Intramuros panorama as header, menu, one combined Ang Paanyaya invitation card with the countdown inside, then a large burnt orange Tugon RSVP panel, then a small Save the date calendar button. Never use Pakisagot.
 - Reception: 6pm, doors open from 5:30pm, never show an end time. After party at Bar 27, just across the hallway on the 27th floor. Do not say who pays for drinks.
 - Diamond Hotel rate: guests email reservations@diamondhotel.com, cc pmanalastas@diamondhotel.com and the wedding Gmail, quoting "Tamayo's Wedding, April 10, 2027". Email only. Rates per room type still pending from the hotel.
-- Dress Code palette (Ang Kulay): Burnt Orange #CD621E, Sand #D5A786, Soft Gold #EED595, Ecru #F5EDDD, sampled from the mood board. Each swatch carries its name for colour blind readers. Two extra For Her photos in burnt orange and soft gold sit under In our colours, no sepia. The earlier ivory, blush, sage and champagne palette is retired.
+- Dress Code palette (Ang Kulay): Burnt Orange #CD621E, Sand #D5A786, Soft Gold #EED595, Ecru #E5D6AB (the mood board cream, not the site paper colour #F5EDDD), sampled from the mood board. Each swatch carries its name for colour blind readers. Two extra For Her photos in burnt orange and soft gold sit under In our colours, no sepia. The earlier ivory, blush, sage and champagne palette is retired.
 - Tagalog first on new copy, English as the italic gloss beneath.
 - Expected guests now about 140.
 
+- Wine is retired from the site at Manny's request (24 November 2026). Script headings and the Tugon panel use ink #2B2B2B. The RSVP panel is ecru with a double gold frame and an ink button. The countdown sits under it. Phones get a single Menu button and a short panorama strip.

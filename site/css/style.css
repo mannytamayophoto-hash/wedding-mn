@@ -7,7 +7,7 @@
   --ecru-deep: #EADFC6;
   --ink: #2B2B2B;
   --ink-soft: #4A463F;
-  --wine: #6B1E36;
+  --wine: #2B2B2B;
   --burnt: #C1552C;
   --gold: #C9A227;
   --gold-soft: #DCC383;
@@ -88,14 +88,14 @@ img { max-width: 100%; height: auto; }
 .script {
   font-family: "Pinyon Script", cursive;
   font-weight: 400;
-  color: var(--wine);
+  color: var(--ink);
 }
 
 h1.page-title {
   font-family: "Pinyon Script", cursive;
   font-weight: 400;
   font-size: clamp(44px, 7vw, 64px);
-  color: var(--wine);
+  color: var(--ink);
   margin: 0 0 4px;
   line-height: 1.3;
 }
@@ -138,7 +138,7 @@ p.lede {
 }
 
 a { color: var(--burnt); text-decoration-color: var(--gold-soft); text-underline-offset: 3px; }
-a:hover { color: var(--wine); }
+a:hover { color: var(--ink); }
 
 .folio-number {
   font-family: "Cinzel", serif;
@@ -156,7 +156,7 @@ a:hover { color: var(--wine); }
   line-height: 0.85;
   float: left;
   padding: 4px 8px 0 0;
-  color: var(--wine);
+  color: var(--ink);
 }
 
 /* ---------- layout ---------- */
@@ -205,7 +205,7 @@ nav.site-nav a {
   border-bottom: 1px solid transparent;
 }
 
-nav.site-nav a:hover { color: var(--wine); }
+nav.site-nav a:hover { color: var(--ink); }
 
 nav.site-nav a[aria-current="page"] {
   color: var(--burnt);
@@ -473,7 +473,7 @@ figure.plate-figure figcaption { margin-top: 6px; }
   border: 1px solid var(--gold);
 }
 
-.btn-outline:hover { background: var(--ecru-deep); color: var(--wine); }
+.btn-outline:hover { background: var(--ecru-deep); color: var(--ink); }
 
 /* ---------- nav cards (home) ---------- */
 
@@ -890,7 +890,7 @@ footer.site-footer .mark {
 .honey { position: absolute; left: -9999px; top: auto; width: 1px; height: 1px; overflow: hidden; }
 
 .thanks, .closed { text-align: center; margin-top: 8px; }
-.thanks .script-head { font-family: "Pinyon Script", cursive; font-size: 56px; line-height: 1.1; color: var(--wine); margin: 0 0 10px; }
+.thanks .script-head { font-family: "Pinyon Script", cursive; font-size: 56px; line-height: 1.1; color: var(--ink); margin: 0 0 10px; }
 .thanks:focus { outline: none; }
 
 @media (max-width: 520px) {
@@ -906,7 +906,7 @@ footer.site-footer .mark {
 
 /* ---------- Dress code palette (November 2026) ---------- */
 
-.palette-script { font-family: "Pinyon Script", cursive; font-weight: 400; font-size: 56px; line-height: 1.1; color: var(--wine); margin: 0; }
+.palette-script { font-family: "Pinyon Script", cursive; font-weight: 400; font-size: 56px; line-height: 1.1; color: var(--ink); margin: 0; }
 .palette-gloss { font-family: "IM Fell English", serif; font-style: italic; font-size: 18px; color: var(--burnt); margin: 2px 0 8px; }
 .palette { display: grid; grid-template-columns: repeat(4, 1fr); gap: 22px; max-width: 560px; margin: 24px auto 0; }
 .swatch-arch { aspect-ratio: 3 / 4; border-radius: 999px 999px 0 0 / 55% 55% 0 0; outline: 1px solid var(--gold); outline-offset: 5px; margin: 6px 6px 0; }
@@ -915,4 +915,57 @@ footer.site-footer .mark {
 .in-colours { font-family: "Cinzel", serif; font-size: 13px; font-weight: 600; letter-spacing: 0.22em; text-transform: uppercase; color: var(--burnt); margin: 26px 0 0; }
 @media (max-width: 520px) {
   .palette { grid-template-columns: repeat(2, 1fr); gap: 26px 18px; }
+}
+
+/* ---------- Quieter RSVP panel, countdown below it, phone menu (November 2026) ---------- */
+
+.rsvp-panel {
+  background: var(--ecru);
+  border: 4px double var(--gold);
+  padding: 8px;
+}
+.rsvp-panel .inner-rule { border: 1px solid var(--gold-soft); color: var(--ink); padding: 36px 24px 34px; }
+.rsvp-panel .rsvp-script { color: var(--ink); }
+.rsvp-panel .caption { color: var(--ink-soft); }
+.rsvp-panel .rsvp-deadline { color: var(--burnt); font-size: 16px; margin-top: 24px; }
+.btn-rsvp {
+  background: var(--ink);
+  color: var(--ecru);
+  font-size: 24px;
+  padding: 22px 84px 22px 92px;
+  box-shadow: 0 0 0 4px var(--ecru), 0 0 0 6px var(--gold);
+}
+.btn-rsvp:hover, .btn-rsvp:focus-visible { background: var(--burnt); color: var(--ecru); }
+.rsvp-panel .btn-rsvp { box-shadow: 0 0 0 4px var(--ecru), 0 0 0 6px var(--gold); }
+
+.countdown-wrap { max-width: 660px; margin: 34px auto 0; }
+
+.nav-toggle { display: none; }
+
+@media (max-width: 520px) {
+  .rsvp-panel .btn-rsvp { padding: 20px 10px; font-size: 22px; }
+  body > header .plate-wide { height: 150px; width: 100%; object-fit: cover; object-position: center; }
+}
+
+@media (max-width: 640px) {
+  nav.site-nav.has-toggle { gap: 10px 14px; padding: 10px 16px 14px; align-items: center; }
+  nav.site-nav.has-toggle .nav-toggle {
+    display: inline-block;
+    font-family: "Cinzel", serif;
+    font-size: 12px;
+    font-weight: 600;
+    letter-spacing: 0.18em;
+    text-transform: uppercase;
+    color: var(--ink);
+    background: var(--ecru);
+    border: 1px solid var(--gold);
+    border-radius: 2px;
+    padding: 8px 18px;
+    cursor: pointer;
+    order: 1;
+  }
+  nav.site-nav.has-toggle .nav-toggle[aria-expanded="true"] { background: var(--ecru-deep); border-width: 2px; }
+  nav.site-nav.has-toggle a.nav-rsvp { order: 2; }
+  nav.site-nav.has-toggle a:not(.nav-rsvp) { display: none; order: 3; }
+  nav.site-nav.has-toggle.open a:not(.nav-rsvp) { display: inline-grid; }
 }
