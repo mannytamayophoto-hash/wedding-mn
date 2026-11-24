@@ -1,126 +1,64 @@
-# RSVP backend setup
+# RSVP setup, about 10 minutes
 
-These steps are for Manny, done once in the wedding Google account. Nothing here needs the repo or any code editing except copying one file. Work through them in order.
+You do this once, signed in as the wedding Gmail (manuelynatashatamayo@gmail.com). Never share the password with anyone, including Claude.
 
-Keep these private: the spreadsheet link, the Sheet ID, the web app URL until step 7, and any guest details. Never paste them into GitHub, into a chat with anyone outside the wedding team, or into a public document.
+The script lives inside the Google Sheet, so there is no Sheet ID to paste anywhere.
 
-## Before you start
+## 1. Open the sheet
 
-You need:
+1. Go to drive.google.com and sign in to the wedding Gmail.
+2. Open the spreadsheet called Copy of Wedding RSVP.
 
-1. The wedding Google account, signed in in your browser. Use a normal browser window, not a private one.
-2. The spreadsheet called Wedding RSVP. It already holds the guest list in the right columns, shared to the wedding account from Manny's own Drive.
-3. The file `backend/Code.gs` from the GitHub repo. Open it on GitHub, click the Raw button, then select all and copy the text.
+## 2. Paste the script
 
-## Step 1. Get your own copy of the spreadsheet
+1. In the sheet, click Extensions, then Apps Script. A new tab opens.
+2. On the left, click Code.gs. Select everything in the editor and delete it.
+3. Open backend/Code.gs on GitHub (repo wedding-mn), click Raw, select all, copy.
+4. Paste it into the Apps Script editor.
+5. Click the disk icon (Save). Name the project Wedding RSVP if it asks.
 
-1. In the wedding account, go to drive.google.com and click Shared with me.
-2. Open the file called Wedding RSVP.
-3. Click File, then Make a copy. Keep the name Wedding RSVP and click Make a copy.
-4. The copy opens in a new tab. This copy belongs to the wedding account, and it is the one the script will use. Close the original tab so you do not edit it by mistake.
+## 3. Set up the tabs
 
-## Step 2. Check the invite list
+1. At the top, pick setupTabs from the function dropdown, then click Run.
+2. Google asks for permission. Click Review permissions, choose the wedding Gmail, then Advanced, then Go to Wedding RSVP (unsafe), then Allow. This is normal for your own script.
+3. Go back to the sheet. You should now see the RSVPs and Send invites tabs, and a Wedding RSVP menu at the top.
 
-1. Look at the first tab. Each row is one person or one open seat, grouped by household, with the code column empty. That is correct for now.
-2. Fill in email, phone and channel when you know them. Use these values for channel: email, sms, messenger, whatsapp, viber or inperson. You can do this later too.
-3. The language column is en for English or tl for Tagalog.
-4. Leave the code column blank for now. The script fills it in at step 5.
-5. Keep each household's rows together. A blank guest_name on a row is an open seat. max_party is the most people that household may bring, repeated on every row for that household.
+## 4. Publish it as a web app
 
-This sheet holds real names and contact details. Keep the spreadsheet link private.
+1. In Apps Script click Deploy, then New deployment.
+2. Click the gear next to Select type and choose Web app.
+3. Set Execute as to Me.
+4. Set Who has access to Anyone.
+5. Click Deploy. Allow permissions again if asked.
+6. Copy the Web app URL. It ends in /exec.
+7. Send that URL to Claude. It goes into site/js/rsvp.js. It is safe to put on the website.
 
-## Step 3. Open the script editor
+## 5. Test it
 
-1. In the spreadsheet, click Extensions in the top menu, then Apps Script.
-2. A new tab opens with a file called Code.gs containing a placeholder function. Click inside it, press Command and A to select everything, then Delete.
-3. Paste the text you copied from GitHub in the Before you start section.
-4. Find the line that starts with `const SHEET_ID` near the top. Replace the text PASTE_SHEET_ID_HERE with the Sheet ID. The Sheet ID is the long string in the spreadsheet address between `/d/` and `/edit`. Keep the quote marks around it.
-5. Press Command and S to save.
-6. Click the project name at the top left, rename it to Wedding RSVP, then press Enter.
+1. Claude will send a test reply with your own email.
+2. Check the RSVPs tab for a new row, and the Log tab for the confirmation email. DRY_RUN is on, so nothing is actually emailed yet.
+3. Once the log looks right, in Code.gs change DRY_RUN to false, then update the deployment as in step 6.
 
-## Step 4. Set the time zone
+## 6. Changing the script later
 
-1. In the left menu, click the gear icon labelled Project Settings.
-2. Under Time zone, choose Asia/Manila (GMT+08:00).
-3. This matters because the 15 January 2027 cutoff and the 1 January 2027 reminder are both Manila times.
+Always update the existing deployment, never make a new one, or the URL changes and the website stops working.
 
-## Step 5. Set up the tabs and create the household codes
+1. Click Deploy, then Manage deployments.
+2. Click the pencil.
+3. Under Version choose New version.
+4. Click Deploy.
 
-1. Click the Editor icon in the left menu to go back to the code.
-2. In the toolbar, use the function dropdown and choose setupTabs.
-3. Press Run.
-4. A window asks you to authorise the script. Choose Review permissions, pick the wedding account, then click Advanced and Go to Wedding RSVP. Click Allow. Google shows this warning because the script is new and private, not because anything is wrong.
-5. Go back to the spreadsheet. The first tab is now called InviteList, and there are new tabs called Responses and Log.
-6. Back in the script editor, choose generateCodes in the function dropdown and press Run.
-7. Go back to the spreadsheet. Every household now has a six letter code in column A of InviteList, with the same code on each row for that household.
+## Using the sheet day to day
 
-You can run generateCodes again later when you add households. It only fills in blank codes, so codes already given out never change. Keep each household's rows together so they share a code.
+- RSVPs tab: one row per email address. Set the Status column (Confirmed, Waitlist, Declined). My notes and Personal line are private to you, the personal line is added to that guest's next email.
+- Wedding RSVP menu, Send emails: sends the Confirmed, Waitlist or Declined email to every row whose status changed since the last send.
+- Wedding RSVP menu, Check against guest list: flags names not found in InviteList and extra seat requests.
+- Wedding RSVP menu, Build invite messages: fills the Send invites tab. Each row is a ready message with the RSVP link, in English or Tagalog, to copy and paste into Messenger, WhatsApp, Viber, SMS or email. Tick Sent when done.
+- Gmail sends about 80 emails a day from this script, so spread large batches over a few days.
 
-## Step 6. Publish the web app
+## Settings in Code.gs
 
-1. In the script editor, click Deploy at the top right, then New deployment.
-2. Click the gear icon beside Select type and choose Web app.
-3. Set Description to RSVP v1.
-4. Set Execute as to Me.
-5. Set Who has access to Anyone.
-6. Click Deploy. If asked, authorise again the same way as step 5.
-7. Copy the Web app URL. It ends in `/exec`. Keep it in a private note for now. It goes into the website in a later step.
-
-To change the code later, do not choose New deployment, because that gives a new URL. Instead, click Deploy, then Manage deployments, click the pencil icon, choose New version under Version, and click Deploy. The URL stays the same.
-
-## Step 7. Test the lookup
-
-1. Pick a real code from column A of InviteList.
-2. Open a browser window and paste this, replacing the two parts in capitals. Keep the question mark and the ampersand:
-
-   WEB_APP_URL?action=lookup&code=HOUSEHOLD_CODE
-
-3. You should see text starting with `{"household":`. It lists only that household, with its named guests and the number of open seats. If you see `not_found`, check the code has no typos and that step 2 is done.
-
-Do not share the test link. It shows the household's details.
-
-## Step 8. Dry run the emails
-
-The script has a switch called DRY_RUN, set to true when you first paste it. While it is true, nothing is emailed. The script only writes what it would have sent to the execution log.
-
-1. In the script editor, choose sendReminders from the function dropdown and press Run.
-2. Click Execution log at the bottom of the screen. You should see lines starting with DRY RUN, one per household that has an email and has not replied.
-3. Check the ManualReminders tab in the spreadsheet. It lists households without an email address, with the link ready to copy into a text message or Messenger.
-
-Only after the log looks right, change DRY_RUN in the script editor from true to false, then click Save. Keep it true until then.
-
-### The daily email limit
-
-A free Gmail account may send to only 100 recipients a day through Apps Script. Confirmations to guests count towards that too. The script stops at 80 emails in any 24 hours and writes email_deferred in the Log tab for each one it skips. A reminder that was skipped is not marked as sent, so run sendReminders again the next day and it carries on from where it stopped. If you ever see email_failed in the Log tab, the reply was still saved, only the email did not go.
-
-## Step 9. Set the 1 January reminder
-
-1. In the script editor, click the clock icon labelled Triggers in the left menu.
-2. Click Add Trigger.
-3. Set the function to sendReminders.
-4. Set the event source to the timer option, the one that runs on a set date and time.
-5. Choose Specific date and time, enter 1 January 2027 at 9:00am, and click Save.
-
-The reminder runs once. It emails only households that have an email and have not replied, and writes the rest to ManualReminders. It can run twice safely, because each reminder sent is logged.
-
-## What the tabs do
-
-- InviteList: the private list. Only you and Natasha edit it.
-- Responses: one row per household. Guests answer on the website, and the script writes here. You can also type a reply by hand for a relative who will never use the form. Set source to manual so it is clear.
-- Log: records failed code lookups and sent reminders. It holds codes and outcomes only, no names or emails.
-- SendList: created by the script when you run exportSendList. It has one message per household, ready to paste, with a sent column for you to tick.
-- ManualReminders: created by the script on each reminder run, for households with no email.
-- QR: created by the script when you run exportQrList. It feeds the printed invitations later.
-
-## If something goes wrong
-
-- Error "Missing tab": one of the three tabs in step 1 has a different name or is missing. Check the spelling exactly.
-- Error "Authorisation required": run the function again and authorise as in step 5.
-- The lookup says locked: too many wrong codes were tried in the last 15 minutes. Wait 15 minutes. The lock applies to everyone, because the script cannot see who is asking.
-- A household asks for a new code: do not change the code. Ask Natasha or Manny to check the household in InviteList, then send the existing code.
-
-## Things never to do
-
-- Do not paste the spreadsheet link or the Sheet ID into GitHub or any public place. The web app URL is the one exception: it goes into the website code in a later stage, and that is meant to be public.
-- Do not share your Google password with anyone or put it in a file. The script never needs it.
-- Do not create a New deployment for a change. Use New version instead.
+- DRY_RUN: true logs emails instead of sending. Switch to false only after checking the Log tab.
+- CUTOFF: RSVPs close 15 January 2027, 23:59 Manila time. The server enforces it.
+- CONFIRM_BY_TEXT: the date we promise to confirm by, 31 January 2027.
+- MAX_SEATS: 2 per reply.

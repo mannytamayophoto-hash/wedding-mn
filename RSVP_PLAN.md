@@ -1,3 +1,5 @@
+> SUPERSEDED, November 2026. The household code plan below was replaced by a single RSVP link. See RSVP_UPDATE_NOV2026.md and the last section of CLAUDE.md. Kept for history only.
+
 # RSVP system for manuelynatasha.com
 
 ## Rules for whoever builds this (read first)

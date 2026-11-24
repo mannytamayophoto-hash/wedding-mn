@@ -1,86 +1,121 @@
 /**
- * Wedding RSVP backend for manuelynatasha.com.
+ * Wedding RSVP backend for manuelynatasha.com, single link version (November 2026).
+ *
+ * One RSVP form for everyone, no codes. Each reply lands in the RSVPs tab,
+ * one row per email address. Manny and Natasha set the Status column, then
+ * use the Wedding RSVP menu, Send emails, to send the confirmation, waitlist
+ * or declined email to everyone whose status has changed.
  *
  * This copy is for version control only. Paste it into the Apps Script editor
- * attached to the "Wedding RSVP" spreadsheet. backend/SETUP.md has the steps.
- *
- * Nothing in this file holds a guest list, an email address or a key. The
- * Sheet ID is typed into the script editor by hand and is never committed.
+ * attached to the Wedding RSVP spreadsheet. backend/SETUP.md has the steps.
+ * Nothing in this file holds a guest list, an email address or a key.
  */
 
 // Settings
 
-// Paste the Sheet ID from the spreadsheet URL here, in the script editor only.
+// Leave as it is. The script uses the spreadsheet it is attached to.
+// Only paste a Sheet ID here if the script ever lives outside the sheet.
 const SHEET_ID = 'PASTE_SHEET_ID_HERE';
 
 // Replies close at 23:59 Manila time on this date.
 const CUTOFF = '2027-01-15T23:59:00+08:00';
+const CUTOFF_TEXT = '15 January 2027';
+const CONFIRM_BY_TEXT = '31 January 2027';
 
 const SITE_URL = 'https://manuelynatasha.com';
-const FROM_NAME = 'Manuel y Natasha';
+const FROM_NAME = 'Manny at Tash';
 
-// While true, anything that sends email only writes to the execution log.
-// Set it to false in the script editor only after the dry run looks right.
+// While true, emails are written to the Log tab instead of being sent.
+// Switch to false in the script editor once a test reply looks right.
 const DRY_RUN = true;
 
-// A free Gmail account may send to 100 recipients a day through Apps Script.
-// Stay under it. Anything over the limit is skipped and logged, and the next
-// run carries on from where this one stopped.
+// A free Gmail account may send to about 100 people a day from a script.
+// Anything over this is left for the next run of Send emails.
 const DAILY_EMAIL_LIMIT = 80;
 
-// Lockout. Apps Script cannot see the visitor address, so this limit is shared
-// by everyone: more than MAX_FAILS failed attempts in the window blocks new ones.
-const MAX_FAILS = 30;
-const FAIL_WINDOW_MINUTES = 15;
+// Shared limit on new replies per hour, a guard against junk submissions.
+const MAX_SUBMITS_PER_HOUR = 60;
 
-// No I or O, and no 0 or 1, so codes cannot be misread when typed or printed.
-const CODE_ALPHABET = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789';
-const CODE_LENGTH = 6;
+const MAX_SEATS = 2;
 
-const TAB = {
-  invite: 'InviteList',
-  responses: 'Responses',
-  log: 'Log',
-  sendList: 'SendList',
-  manual: 'ManualReminders',
-  qr: 'QR'
+const HOTEL = {
+  reservations: 'reservations@diamondhotel.com',
+  events: 'pmanalastas@diamondhotel.com',
+  wedding: 'manuelynatashatamayo@gmail.com',
+  reference: "Tamayo's Wedding, April 10, 2027"
 };
 
-// Column positions, counted from zero, matching the layout in RSVP_PLAN.md.
-const INVITE = { code: 0, household: 1, guest: 2, maxParty: 3, email: 4, phone: 5, channel: 6, segment: 7, language: 8, notes: 9 };
-const RESP = { code: 0, attending: 1, guests: 2, headcount: 3, dietary: 4, song: 5, hotel: 6, flight: 7, email: 8, message: 9, source: 10, created: 11, updated: 12 };
+const TAB = { rsvps: 'RSVPs', invite: 'InviteList', send: 'Send invites', log: 'Log' };
 
-const HEADERS = {
-  Log: ['timestamp', 'code', 'outcome'],
-  SendList: ['code', 'household', 'channel', 'email', 'phone', 'link', 'message', 'sent'],
-  ManualReminders: ['code', 'household', 'channel', 'phone', 'link', 'message'],
-  QR: ['code', 'household', 'url']
-};
+// The RSVPs tab. Order matters, the code reads columns by these names.
+const COLS = [
+  'received', 'updated', 'status', 'attending', 'name', 'email', 'phone',
+  'seats', 'guest_names', 'country', 'dietary', 'extra_seats', 'extra_seats_details',
+  'hotel', 'hotel_rooms', 'hotel_room_type', 'hotel_check_in', 'hotel_check_out',
+  'their_message', 'list_check', 'my_notes', 'personal_line', 'emailed'
+];
+const C = {};
+COLS.forEach(function (name, i) { C[name] = i; });
 
-// Run once from the script editor after pasting the Sheet ID. Names the first tab
-// InviteList and adds the Responses and Log tabs with their headers. Safe to run
-// again, it never changes a tab that already exists.
-const RESPONSE_HEADERS = ['code', 'attending', 'guests_json', 'headcount', 'dietary', 'song',
-  'hotel_interest', 'flight_interest', 'email', 'message', 'source', 'created_at', 'updated_at'];
+const STATUS = ['New', 'Confirmed', 'Waitlist', 'Declined', 'Not coming'];
+const LOG_HEADERS = ['timestamp', 'event', 'detail'];
 
+// Menu in the spreadsheet
+
+function onOpen() {
+  SpreadsheetApp.getUi().createMenu('Wedding RSVP')
+    .addItem('Send emails', 'sendStatusEmails')
+    .addItem('Check against guest list', 'checkAgainstList')
+    .addItem('Build invite messages', 'buildInviteMessages')
+    .addSeparator()
+    .addItem('Set up tabs (first time only)', 'setupTabs')
+    .addToUi();
+}
+
+// Run once. Adds the RSVPs and Log tabs with headings, the Status dropdown
+// and colours. Safe to run again, it never deletes anything.
 function setupTabs() {
-  const book = SpreadsheetApp.openById(SHEET_ID);
-  if (!book.getSheetByName(TAB.invite)) book.getSheets()[0].setName(TAB.invite);
-  [[TAB.responses, RESPONSE_HEADERS], [TAB.log, HEADERS.Log]].forEach(function (pair) {
-    if (book.getSheetByName(pair[0])) return;
-    const sheet = book.insertSheet(pair[0]);
-    sheet.getRange(1, 1, 1, pair[1].length).setValues([pair[1]]);
-    sheet.setFrozenRows(1);
+  const book = book_();
+  let sheet = book.getSheetByName(TAB.rsvps);
+  if (!sheet) sheet = book.insertSheet(TAB.rsvps, 0);
+  sheet.getRange(1, 1, 1, COLS.length).setValues([COLS.map(heading_)])
+    .setFontWeight('bold').setBackground('#F5EDDD');
+  sheet.setFrozenRows(1);
+  sheet.setFrozenColumns(5);
+
+  const statusRange = sheet.getRange(2, C.status + 1, sheet.getMaxRows() - 1, 1);
+  statusRange.setDataValidation(SpreadsheetApp.newDataValidation()
+    .requireValueInList(STATUS, true).setAllowInvalid(false).build());
+
+  const rules = [
+    ['Confirmed', '#D9EAD3'], ['Waitlist', '#FFF2CC'], ['Declined', '#E6E6E6'],
+    ['Not coming', '#E6E6E6'], ['New', '#FCE5CD']
+  ].map(function (pair) {
+    return SpreadsheetApp.newConditionalFormatRule().whenTextEqualTo(pair[0])
+      .setBackground(pair[1]).setRanges([statusRange]).build();
   });
-  Logger.log('Tabs ready: ' + book.getSheets().map(function (s) { return s.getName(); }).join(', '));
+  sheet.setConditionalFormatRules(rules);
+
+  [C.their_message, C.my_notes, C.personal_line, C.guest_names, C.list_check].forEach(function (i) {
+    sheet.setColumnWidth(i + 1, 260);
+  });
+  sheet.getRange(1, C.my_notes + 1).setNote('Private. Never sent to the guest.');
+  sheet.getRange(1, C.personal_line + 1).setNote('Optional. Added to this guest\'s next email, under the greeting.');
+  sheet.getRange(1, C.emailed + 1).setNote('Filled in by Send emails. Clear it to send the same email again.');
+
+  if (!book.getSheetByName(TAB.log)) {
+    const log = book.insertSheet(TAB.log);
+    log.getRange(1, 1, 1, LOG_HEADERS.length).setValues([LOG_HEADERS]);
+    log.setFrozenRows(1);
+  }
+  if (book.getSheetByName(TAB.invite)) buildInviteMessages();
+  try { SpreadsheetApp.getActive().toast('RSVP tabs are ready.'); } catch (err) { /* run outside the sheet */ }
 }
 
 // Web app entry points
 
-function doGet(e) {
-  const params = (e && e.parameter) || {};
-  if (params.action === 'lookup') return json_(lookup_(params.code));
-  return json_({ error: 'unknown_action' });
+function doGet() {
+  return json_({ ok: true, open: !deadlinePassed_() });
 }
 
 function doPost(e) {
@@ -90,8 +125,17 @@ function doPost(e) {
   } catch (err) {
     return json_({ error: 'bad_request' });
   }
-  if (body.action === 'submit') return json_(submit_(body));
-  return json_({ error: 'unknown_action' });
+  if (body.action !== 'submit') return json_({ error: 'unknown_action' });
+  const lock = LockService.getScriptLock();
+  try {
+    lock.waitLock(20000);
+    return json_(submit_(body));
+  } catch (err) {
+    log_('error', String(err));
+    return json_({ error: 'server_busy' });
+  } finally {
+    lock.releaseLock();
+  }
 }
 
 function json_(obj) {
@@ -99,514 +143,394 @@ function json_(obj) {
     .setMimeType(ContentService.MimeType.JSON);
 }
 
-// Lookup
+// Saving a reply
 
-function lookup_(rawCode) {
-  const code = normaliseCode_(rawCode);
-  if (!code) return { error: 'not_found' };
-  if (tooManyFails_()) return { error: 'locked' };
+function submit_(b) {
+  if (clean_(b.website)) return { ok: true }; // hidden field, only robots fill it
+  if (deadlinePassed_()) return { error: 'closed' };
+  if (submitsLastHour_() >= MAX_SUBMITS_PER_HOUR) return { error: 'server_busy' };
 
-  const hh = readHouseholds_()[code];
-  if (!hh) {
-    logAttempt_(code, 'fail');
-    return { error: 'not_found' };
-  }
-
-  const saved = findSaved_(code);
-  const guests = hh.named.map(function (name) {
-    return { name: name, attending: answerFor_(saved, name) };
-  });
-  const extras = saved ? saved.guests.filter(function (g) {
-    return !isNamed_(hh, g.name);
-  }) : [];
-
-  return {
-    household: hh.household,
-    guests: guests.concat(extras),
-    open_slots: hh.openSlots,
-    max_party: hh.maxParty,
-    email: (saved && saved.email) || hh.email,
-    deadline_passed: deadlinePassed_(),
-    existing: saved ? {
-      attending: saved.attending,
-      dietary: saved.dietary,
-      song: saved.song,
-      message: saved.message,
-      hotel_interest: saved.hotel,
-      flight_interest: saved.flight,
-      email: saved.email
-    } : null
+  const attending = b.attending === 'no' ? 'no' : 'yes';
+  const r = {
+    attending: attending,
+    name: clean_(b.name, 120),
+    email: clean_(b.email, 160).toLowerCase(),
+    phone: clean_(b.phone, 40),
+    message: clean_(b.message, 1500)
   };
+  if (!r.name) return { error: 'missing', field: 'name' };
+  if (!isEmail_(r.email)) return { error: 'missing', field: 'email' };
+  if (!/\d{6,}/.test(r.phone.replace(/\D/g, ''))) return { error: 'missing', field: 'phone' };
+
+  if (attending === 'yes') {
+    r.seats = Math.max(1, Math.min(MAX_SEATS, parseInt(b.seats, 10) || 1));
+    r.guests = (Array.isArray(b.guests) ? b.guests : []).map(function (g) { return clean_(g, 120); })
+      .filter(String).slice(0, r.seats);
+    if (r.guests.length < r.seats) return { error: 'missing', field: 'guests' };
+    r.country = clean_(b.country, 60);
+    r.dietary = clean_(b.dietary, 500);
+    r.extra = b.extraSeats ? 'yes' : '';
+    r.extraDetails = r.extra ? clean_(b.extraDetails, 500) : '';
+    r.hotel = b.hotel ? 'yes' : '';
+    r.rooms = r.hotel ? String(Math.max(1, Math.min(10, parseInt(b.rooms, 10) || 1))) : '';
+    r.roomType = r.hotel ? clean_(b.roomType, 60) : '';
+    r.checkIn = r.hotel ? clean_(b.checkIn, 20) : '';
+    r.checkOut = r.hotel ? clean_(b.checkOut, 20) : '';
+  }
+
+  const saved = writeRow_(r);
+  sendReceipt_(r);
+  return { ok: true, updated: saved.updated };
 }
 
-// Submit
-
-function submit_(body) {
-  const code = normaliseCode_(body.code);
-  if (tooManyFails_()) return { error: 'locked' };
-  if (deadlinePassed_()) return { error: 'deadline_passed' };
-
-  const hh = readHouseholds_()[code];
-  if (!hh) {
-    logAttempt_(code, 'fail');
-    return { error: 'not_found' };
-  }
-
-  const email = String(body.email || '').trim();
-  if (!isEmail_(email)) return { error: 'email_invalid' };
-
-  const check = checkGuests_(hh, body.guests);
-  if (check.error) return { error: check.error };
-
-  const lock = LockService.getScriptLock();
-  if (!lock.tryLock(15000)) return { error: 'busy' };
-
-  let saved;
-  try {
-    saved = writeResponse_(hh, code, email, check.guests, body);
-  } finally {
-    lock.releaseLock();
-  }
-
-  sendConfirmation_(hh, saved);
-  return { ok: true };
-}
-
-// Checks the submitted guests against the household. Every named guest needs a
-// yes or no. Anything left over must fit in the open plus one slots.
-function checkGuests_(hh, guests) {
-  if (!Array.isArray(guests)) return { error: 'bad_request' };
-
-  const pool = guests.map(function (g) {
-    return { name: String(g.name || '').trim(), attending: g.attending };
-  });
-  if (pool.some(function (g) { return g.attending !== 'yes' && g.attending !== 'no'; })) {
-    return { error: 'bad_request' };
-  }
-
-  const answered = [];
-  for (let i = 0; i < hh.named.length; i++) {
-    const idx = indexOfName_(pool, hh.named[i]);
-    if (idx === -1) return { error: 'missing_guest' };
-    answered.push({ name: hh.named[i], attending: pool[idx].attending });
-    pool.splice(idx, 1);
-  }
-
-  if (pool.length > hh.openSlots) return { error: 'too_many_guests' };
-  if (pool.some(function (g) { return !g.name; })) return { error: 'bad_request' };
-
-  const extras = pool.map(function (g) { return { name: g.name, attending: g.attending }; });
-  const yes = answered.concat(extras).filter(function (g) { return g.attending === 'yes'; }).length;
-  if (yes > hh.maxParty) return { error: 'over_party_size' };
-
-  return { guests: answered.concat(extras) };
-}
-
-function writeResponse_(hh, code, email, guests, body) {
+function writeRow_(r) {
+  const sheet = rsvpSheet_();
+  const data = sheet.getDataRange().getValues();
   const now = new Date();
-  const yes = guests.filter(function (g) { return g.attending === 'yes'; }).length;
-  const attending = yes === 0 ? 'no' : (yes === guests.length ? 'yes' : 'partial');
-
-  const values = {
-    attending: attending,
-    guests: JSON.stringify(guests),
-    headcount: yes,
-    dietary: clean_(body.dietary),
-    song: clean_(body.song),
-    hotel: flag_(body.hotel_interest),
-    flight: flag_(body.flight_interest),
-    email: email,
-    message: clean_(body.message),
-    source: 'web'
-  };
-
-  const sheet = sheet_(TAB.responses);
-  const rows = sheet.getDataRange().getValues();
-  let rowNumber = -1;
-  for (let i = 1; i < rows.length; i++) {
-    if (normaliseCode_(rows[i][RESP.code]) === code) {
-      rowNumber = i + 1;
-      break;
-    }
+  let rowIndex = -1;
+  for (let i = 1; i < data.length; i++) {
+    if (String(data[i][C.email]).toLowerCase() === r.email) { rowIndex = i; break; }
   }
+  const row = rowIndex > 0 ? data[rowIndex].slice() : COLS.map(function () { return ''; });
+  while (row.length < COLS.length) row.push('');
+  const before = row[C.status];
 
-  const record = [code, values.attending, values.guests, values.headcount, values.dietary,
-    values.song, values.hotel, values.flight, values.email, values.message, values.source,
-    now, now];
-  if (rowNumber === -1) {
-    sheet.appendRow(record);
+  row[C.received] = row[C.received] || now;
+  row[C.updated] = now;
+  row[C.attending] = r.attending === 'yes' ? 'Yes' : 'No';
+  row[C.name] = r.name;
+  row[C.email] = r.email;
+  row[C.phone] = "'" + r.phone; // keep the leading plus and zeros
+  row[C.seats] = r.attending === 'yes' ? r.seats : 0;
+  row[C.guest_names] = (r.guests || []).join(', ');
+  row[C.country] = r.country || '';
+  row[C.dietary] = r.dietary || '';
+  row[C.extra_seats] = r.extra || '';
+  row[C.extra_seats_details] = r.extraDetails || '';
+  row[C.hotel] = r.hotel || '';
+  row[C.hotel_rooms] = r.rooms || '';
+  row[C.hotel_room_type] = r.roomType || '';
+  row[C.hotel_check_in] = r.checkIn || '';
+  row[C.hotel_check_out] = r.checkOut || '';
+  row[C.their_message] = r.message;
+
+  if (r.attending === 'no') {
+    row[C.status] = 'Not coming';
+  } else if (!before || before === 'Not coming') {
+    row[C.status] = 'New';
+  }
+  const notes = [];
+  if (rowIndex > 0) notes.push('Changed their reply on ' + fmtDate_(now));
+  if (rowIndex > 0 && before && before !== 'New' && before !== 'Not coming' && r.attending === 'yes') {
+    notes.push('was ' + before + ' before this change, check it');
+  }
+  row[C.list_check] = [listCheck_(r)].concat(notes).filter(String).join('. ');
+
+  if (rowIndex > 0) {
+    sheet.getRange(rowIndex + 1, 1, 1, COLS.length).setValues([row]);
   } else {
-    record[RESP.created] = rows[rowNumber - 1][RESP.created] || now;
-    sheet.getRange(rowNumber, 1, 1, record.length).setValues([record]);
+    sheet.appendRow(row);
   }
+  log_('reply', r.attending + (rowIndex > 0 ? ', updated' : ', new'));
+  return { updated: rowIndex > 0 };
+}
 
-  // Keep the household email on InviteList too, so later mail merges reach them.
-  if (!hh.email) {
-    const invite = sheet_(TAB.invite);
-    const invRows = invite.getDataRange().getValues();
-    for (let i = 1; i < invRows.length; i++) {
-      if (normaliseCode_(invRows[i][INVITE.code]) === code) {
-        invite.getRange(i + 1, INVITE.email + 1).setValue(email);
-      }
+// Emails
+
+// Sent straight away, so every guest has a copy of what they sent.
+function sendReceipt_(r) {
+  let body;
+  if (r.attending === 'no') {
+    body = 'Hi ' + r.name + ',\n\n' +
+      'Thank you for letting us know you can\'t make it. You\'ll be missed, and we\'ll be thinking of you on the day.\n\n' +
+      updatesLine_() + '\n\n' +
+      'With love,\nManny at Tash';
+    send_(r.email, 'Thank you for letting us know', body, 'receipt_no');
+    return;
+  }
+  body = 'Hi ' + r.name + ',\n\n' +
+    'Salamat! We\'ve received your RSVP. This is a copy of what you sent us. ' +
+    'It doesn\'t lock in your seats yet, we\'ll be in touch by ' + CONFIRM_BY_TEXT + ' to confirm.\n\n' +
+    'Guests: ' + r.guests.join(', ') + '\n' +
+    'Travelling from: ' + (r.country || 'not given') + '\n' +
+    'Dietary requirements: ' + (r.dietary || 'none') + '\n' +
+    (r.extra ? 'Extra seats requested: ' + (r.extraDetails || 'yes') + '\n' +
+      'We can\'t guarantee extra seats, but we\'ll do our best.\n' : '') +
+    (r.message ? 'Your message: ' + r.message + '\n' : '') +
+    '\n' + (r.hotel ? hotelSteps_(r) + '\n\n' : '') +
+    'If anything changes, send the form again with the same email address and we\'ll update your reply.\n\n' +
+    updatesLine_() + '\n\n' +
+    'With love,\nManny at Tash';
+  send_(r.email, 'We\'ve received your RSVP', body, 'receipt_yes');
+}
+
+// Menu: Wedding RSVP, Send emails. Sends one email per row whose Status is
+// Confirmed, Waitlist or Declined and whose emailed column does not already
+// show that status. Rows marked New or Not coming are left alone.
+function sendStatusEmails() {
+  const sheet = rsvpSheet_();
+  const data = sheet.getDataRange().getValues();
+  let sent = 0, skipped = 0, left = 0;
+  for (let i = 1; i < data.length; i++) {
+    const row = data[i];
+    const status = String(row[C.status]);
+    if (['Confirmed', 'Waitlist', 'Declined'].indexOf(status) < 0) continue;
+    if (String(row[C.emailed]).indexOf(status) === 0) { skipped++; continue; }
+    if (!DRY_RUN && emailsSentLast24h_() >= DAILY_EMAIL_LIMIT) { left++; continue; }
+    const mail = statusEmail_(status, row);
+    const ok = send_(String(row[C.email]), mail.subject, mail.body, 'status_' + status);
+    if (ok) {
+      sheet.getRange(i + 1, C.emailed + 1).setValue(status + ' email sent ' + fmtDate_(new Date()));
+      sent++;
     }
   }
+  const msg = (DRY_RUN ? 'Test mode, nothing was sent. ' + sent + ' emails written to the Log tab. ' :
+    sent + ' emails sent. ') +
+    (skipped ? skipped + ' already emailed. ' : '') +
+    (left ? left + ' left for tomorrow because of the daily limit, run Send emails again then.' : '');
+  try { SpreadsheetApp.getUi().alert(msg); } catch (err) { Logger.log(msg); }
+}
 
+function statusEmail_(status, row) {
+  const name = String(row[C.name]);
+  const personal = String(row[C.personal_line] || '').trim();
+  const opening = 'Hi ' + name + ',\n\n' + (personal ? personal + '\n\n' : '');
+  if (status === 'Confirmed') {
+    return {
+      subject: 'You\'re confirmed, Manny at Tash, 10 April 2027',
+      body: opening +
+        'Salamat! Your seats are confirmed for our wedding.\n\n' +
+        'Confirmed guests: ' + row[C.guest_names] + '\n\n' +
+        'Ceremony: Saturday 10 April 2027, 4pm\n' +
+        'San Agustin Church, Intramuros, Manila\n' +
+        'Please arrive by 3:30pm\n\n' +
+        'Reception: 6pm, doors open from 5:30pm\n' +
+        'Constellation Room, 27th floor, Diamond Hotel Manila\n\n' +
+        'After party: once the reception wraps up, join us at Bar 27, just across the hallway on the 27th floor.\n\n' +
+        updatesLine_() + ' The dress code, travel tips and hotel booking details are all there too.\n\n' +
+        'If anything changes, just reply to this email.\n\n' +
+        'See you in Manila,\nManny at Tash'
+    };
+  }
+  if (status === 'Waitlist') {
+    return {
+      subject: 'Your RSVP, Manny at Tash',
+      body: opening +
+        'Thank you for your RSVP. We\'re still working through seating, and we\'ll let you know as soon as we can confirm.\n\n' +
+        updatesLine_() + '\n\n' +
+        'With love,\nManny at Tash'
+    };
+  }
   return {
-    attending: attending,
-    guests: guests,
-    dietary: values.dietary,
-    song: values.song,
-    message: values.message,
-    email: email
+    subject: 'Your RSVP, Manny at Tash',
+    body: opening +
+      'Thank you so much for your RSVP. Our venue limits our numbers, and we\'re sorry we can\'t fit everyone we would love to have there. ' +
+      'We hope to celebrate with you another time.\n\n' +
+      'With love,\nManny at Tash'
   };
 }
 
-// Email
-
-function sendConfirmation_(hh, saved) {
-  const lines = [
-    'Buong galak po namin kayong inaanyayahan sa aming kasal, sa ikasampu ng Abril, dalawang libo dalawampu\'t pito, ikaapat ng hapon, sa Simbahan ng San Agustin, Intramuros, Maynila.',
-    '',
-    'With great joy we invite you to our wedding on 10 April 2027 at four in the afternoon, at San Agustin Church, Intramuros, Manila.',
-    '',
-    'Your reply for ' + hh.household + ':'
-  ];
-  saved.guests.forEach(function (g) {
-    lines.push('  ' + g.name + ': ' + (g.attending === 'yes' ? 'attending' : 'not attending'));
-  });
-  if (saved.dietary) lines.push('Dietary: ' + saved.dietary);
-  if (saved.song) lines.push('Song request: ' + saved.song);
-  if (saved.message) lines.push('Message: ' + saved.message);
-  lines.push(
-    '',
-    'You can change your reply at any time until 15 January 2027 at this link:',
-    inviteLink_(hh.code),
-    '',
-    'With love, Manuel and Natasha'
-  );
-  send_(saved.email, 'Salamat, your RSVP for 10 April 2027', lines.join('\n'), 'confirmation');
+function hotelSteps_(r) {
+  return 'Staying at the Diamond Hotel\n' +
+    'You asked about the wedding rate at the Diamond Hotel (' + r.rooms + ' room' + (r.rooms === '1' ? '' : 's') +
+    (r.roomType ? ', ' + r.roomType : '') +
+    (r.checkIn ? ', ' + r.checkIn + ' to ' + r.checkOut : '') + '). Your RSVP does not book a room. To book:\n' +
+    '1. Email ' + HOTEL.reservations + ' and copy in ' + HOTEL.events + ' and ' + HOTEL.wedding + '.\n' +
+    '2. Quote "' + HOTEL.reference + '" and give your names, dates, number of rooms and room type.\n' +
+    '3. The hotel replies with your special wedding rate and how to pay.\n' +
+    '4. Pay the hotel directly. Your room is confirmed by the hotel, not by us.\n' +
+    'Bookings are by email only, not online.';
 }
 
-function sendReminders() {
-  const households = readHouseholds_();
-  const responded = codesWithResponse_();
-  const alreadySent = loggedCodes_('reminder_sent');
-  const manual = [];
-
-  Object.keys(households).forEach(function (code) {
-    if (responded[code] || alreadySent[code]) return;
-    const hh = households[code];
-    if (!hh.email) {
-      manual.push([code, hh.household, hh.channel, hh.phone, inviteLink_(code), reminderMessage_(hh)]);
-      return;
-    }
-    if (send_(hh.email, 'Reminder: your RSVP for 10 April 2027', reminderBody_(hh), 'reminder')) {
-      logAttempt_(code, 'reminder_sent');
-    }
-  });
-
-  writeRows_(TAB.manual, manual);
+function updatesLine_() {
+  return 'All updates will be posted on our website, ' + SITE_URL.replace('https://', '') +
+    ', and we\'ll email you too whenever there\'s news.';
 }
 
-// Sends the mail, or logs it while DRY_RUN is on. Returns true only when a real
-// message went out, so a dry run, a skipped send or a failed send never marks a
-// household as reminded. A mail error never stops a guest's reply being saved.
 function send_(to, subject, body, kind) {
   if (DRY_RUN) {
-    Logger.log('DRY RUN ' + kind + ' to ' + to + ': ' + subject);
-    return false;
+    log_('dry_run_' + kind, to + ' | ' + subject + ' | ' + body.slice(0, 4000));
+    return true;
   }
   if (emailsSentLast24h_() >= DAILY_EMAIL_LIMIT) {
-    logAttempt_('', 'email_deferred');
-    Logger.log('Daily limit reached, not sent: ' + kind + ' to ' + to);
+    log_('email_deferred', kind);
     return false;
   }
   try {
-    GmailApp.sendEmail(to, subject, body, { name: FROM_NAME });
+    MailApp.sendEmail({ to: to, subject: subject, body: body, name: FROM_NAME, replyTo: HOTEL.wedding });
   } catch (err) {
-    logAttempt_('', 'email_failed');
-    Logger.log('Email failed: ' + kind + ' to ' + to + ': ' + err);
+    log_('email_failed', kind + ': ' + err);
     return false;
   }
-  logAttempt_('', 'email_sent');
+  log_('email_sent', kind);
   return true;
 }
 
-function emailsSentLast24h_() {
-  const since = Date.now() - 24 * 60 * 60 * 1000;
-  return outputSheet_(TAB.log).getDataRange().getValues().slice(1).filter(function (r) {
-    return r[2] === 'email_sent' && new Date(r[0]).getTime() >= since;
-  }).length;
-}
-
-function reminderBody_(hh) {
-  return 'Dear ' + hh.household + ',\n\n' +
-    'We would love to know whether you can join us in Manila on 10 April 2027. ' +
-    'Please reply by 15 January 2027 at this link:\n' + inviteLink_(hh.code) + '\n\n' +
-    'With love, Manuel and Natasha';
-}
-
-// Send list and utilities
-
-// Builds the SendList tab. Keeps any sent ticks already made by hand.
-function exportSendList() {
-  const households = readHouseholds_();
-  const sheet = outputSheet_(TAB.sendList);
-  const sentBefore = {};
-  sheet.getDataRange().getValues().slice(1).forEach(function (r) {
-    sentBefore[normaliseCode_(r[0])] = r[7];
-  });
-
-  const rows = Object.keys(households).map(function (code) {
-    const hh = households[code];
-    return [code, hh.household, hh.channel, hh.email, hh.phone, inviteLink_(code),
-      inviteMessage_(hh), sentBefore[code] || ''];
-  });
-  writeRows_(TAB.sendList, rows);
-}
-
-// Fills blank codes only, so running it again never changes an issued code.
-// Consecutive rows for the same household share one code.
-function generateCodes() {
-  const sheet = sheet_(TAB.invite);
-  const rows = sheet.getDataRange().getValues();
-  const used = {};
-  rows.slice(1).forEach(function (r) {
-    const c = normaliseCode_(r[INVITE.code]);
-    if (c) used[c] = true;
-  });
-
-  let previousHousehold = '';
-  let previousCode = '';
-  let filled = 0;
-  for (let i = 1; i < rows.length; i++) {
-    const household = String(rows[i][INVITE.household]).trim();
-    if (!household) {
-      previousHousehold = '';
-      previousCode = '';
-      continue;
-    }
-    let code = normaliseCode_(rows[i][INVITE.code]);
-    if (!code) {
-      code = household === previousHousehold && previousCode ? previousCode : newCode_(used);
-      sheet.getRange(i + 1, INVITE.code + 1).setValue(code);
-      filled++;
-    }
-    previousHousehold = household;
-    previousCode = code;
+// Menu: Wedding RSVP, Check against guest list. Re-runs the guest list check
+// on every row, useful after the InviteList tab has been tidied up.
+function checkAgainstList() {
+  const sheet = rsvpSheet_();
+  const data = sheet.getDataRange().getValues();
+  for (let i = 1; i < data.length; i++) {
+    const row = data[i];
+    if (String(row[C.attending]) !== 'Yes') continue;
+    const check = listCheck_({
+      attending: 'yes',
+      name: String(row[C.name]),
+      guests: String(row[C.guest_names]).split(',').map(function (s) { return s.trim(); }).filter(String),
+      extra: row[C.extra_seats]
+    });
+    const kept = String(row[C.list_check]).split('. ').filter(function (s) { return /^Changed|^was /.test(s); });
+    sheet.getRange(i + 1, C.list_check + 1).setValue([check].concat(kept).filter(String).join('. '));
   }
-  return filled + ' codes filled';
+  try { SpreadsheetApp.getUi().alert('Guest list check updated.'); } catch (err) { /* run from editor */ }
 }
 
-// Builds the QR tab that feeds the printed invitations.
-function exportQrList() {
-  const households = readHouseholds_();
-  const rows = Object.keys(households).map(function (code) {
-    return [code, households[code].household, inviteLink_(code)];
+// Menu: Wedding RSVP, Build invite messages. Makes the Send invites tab, one
+// row per household on the InviteList tab, each with a ready message to copy
+// into Messenger, SMS, WhatsApp or Viber, and a tick box for when it is sent.
+// Running it again adds new households and keeps every tick and edit.
+function buildInviteMessages() {
+  const book = book_();
+  const invite = book.getSheetByName(TAB.invite);
+  if (!invite) throw new Error('No InviteList tab found.');
+  let sheet = book.getSheetByName(TAB.send);
+  if (!sheet) {
+    sheet = book.insertSheet(TAB.send, 1);
+    sheet.getRange(1, 1, 1, 5).setValues([['Household', 'Language', 'Message to copy', 'Sent', 'Notes']])
+      .setFontWeight('bold').setBackground('#F5EDDD');
+    sheet.setFrozenRows(1);
+    sheet.setColumnWidth(1, 200);
+    sheet.setColumnWidth(3, 520);
+    sheet.setColumnWidth(5, 220);
+    sheet.appendRow(['Anyone else (general)', 'en', inviteMessage_('', 'en'), false, 'Use when someone is not on the list']);
+    sheet.appendRow(['Anyone else (general)', 'tl', inviteMessage_('', 'tl'), false, 'Tagalog version']);
+  }
+  const existing = sheet.getDataRange().getValues().slice(1).map(function (r) { return String(r[0]); });
+  const seen = {};
+  const rows = [];
+  invite.getDataRange().getValues().slice(1).forEach(function (r) {
+    const household = String(r[1] || '').trim();
+    if (!household || seen[household] || /names to come/i.test(household)) return;
+    seen[household] = true;
+    if (existing.indexOf(household) >= 0) return;
+    const lang = String(r[8] || '').trim() === 'tl' ? 'tl' : 'en';
+    rows.push([household, lang, inviteMessage_(household, lang), false, '']);
   });
-  writeRows_(TAB.qr, rows);
+  if (rows.length) {
+    const start = sheet.getLastRow() + 1;
+    sheet.getRange(start, 1, rows.length, 5).setValues(rows);
+  }
+  const last = sheet.getLastRow();
+  if (last > 1) {
+    sheet.getRange(2, 4, last - 1, 1).insertCheckboxes();
+    sheet.getRange(2, 3, last - 1, 1).setWrap(true).setVerticalAlignment('top');
+  }
+  try { SpreadsheetApp.getUi().alert(rows.length + ' households added to Send invites.'); } catch (err) { /* run from editor */ }
+}
+
+function inviteMessage_(household, lang) {
+  const link = SITE_URL.replace('https://', '') + '/rsvp/';
+  if (lang === 'tl') {
+    return 'Hi' + (household ? ' ' + household : '') + '! Ikakasal na po kami ni Natasha sa Sabado, ikasampu ng Abril 2027, ' +
+      'sa San Agustin Church, Intramuros, Maynila. Sana po ay makasama namin kayo.\n\n' +
+      'RSVP po bago ang ' + CUTOFF_TEXT.replace('January', 'Enero') + ': ' + link + '\n\n' +
+      'Nandoon na rin po ang lahat ng detalye ng kasal, biyahe at hotel. Salamat po!\nManuel at Natasha';
+  }
+  return 'Hi' + (household ? ' ' + household : '') + '! We\'re getting married on Saturday 10 April 2027 at San Agustin Church, ' +
+    'Intramuros, Manila, and we\'d love you to be there.\n\n' +
+    'Please RSVP by ' + CUTOFF_TEXT + ' here: ' + link + '\n' +
+    'The sooner you reply, the sooner we can confirm your seats.\n\n' +
+    'Everything about the day, travel and hotels is on the website too.\nManuel and Natasha';
+}
+
+// Compares first names against the InviteList tab. The list is rough, mostly
+// first names, so this is a prompt to look, never a decision.
+function listCheck_(r) {
+  if (r.attending !== 'yes') return '';
+  const flags = [];
+  if (r.extra) flags.push('Asking for extra seats');
+  const known = inviteNames_();
+  if (known.length) {
+    const missing = [r.name].concat(r.guests || []).filter(function (n) {
+      const first = firstName_(n);
+      return first && known.indexOf(first) < 0;
+    });
+    if (missing.length) flags.push('Not found on guest list: ' + unique_(missing).join(', '));
+  }
+  return flags.join('. ');
+}
+
+function inviteNames_() {
+  const sheet = book_().getSheetByName(TAB.invite);
+  if (!sheet) return [];
+  const out = [];
+  sheet.getDataRange().getValues().slice(1).forEach(function (row) {
+    [row[1], row[2]].forEach(function (cell) {
+      String(cell || '').split(/\s+and\s+|,|&/i).forEach(function (part) {
+        const first = firstName_(part);
+        if (first) out.push(first);
+      });
+    });
+  });
+  return out;
+}
+
+function firstName_(n) {
+  const words = String(n || '').toLowerCase().replace(/[()]/g, ' ')
+    .replace(/\b(tita|tito|mr|mrs|ms|dr|general|gen|maj|cong)\b\.?/g, ' ').trim().split(/\s+/);
+  return words[0] || '';
 }
 
 // Helpers
 
-// Reads InviteList into one object per household code.
-function readHouseholds_() {
-  const rows = sheet_(TAB.invite).getDataRange().getValues().slice(1);
-  const byCode = {};
-  rows.forEach(function (row) {
-    const code = normaliseCode_(row[INVITE.code]);
-    if (!code) return;
-    if (!byCode[code]) {
-      byCode[code] = {
-        code: code,
-        household: String(row[INVITE.household]).trim(),
-        maxParty: 0,
-        email: '',
-        phone: '',
-        channel: '',
-        segment: '',
-        language: 'en',
-        named: [],
-        openSlots: 0
-      };
-    }
-    const hh = byCode[code];
-    const name = String(row[INVITE.guest]).trim();
-    if (name) hh.named.push(name);
-    if (!hh.maxParty) hh.maxParty = Number(row[INVITE.maxParty]) || 0;
-    if (!hh.email) hh.email = String(row[INVITE.email]).trim();
-    if (!hh.phone) hh.phone = String(row[INVITE.phone]).trim();
-    if (!hh.channel) hh.channel = String(row[INVITE.channel]).trim();
-    if (!hh.segment) hh.segment = String(row[INVITE.segment]).trim();
-    if (row[INVITE.language]) hh.language = String(row[INVITE.language]).trim().toLowerCase();
-  });
-  Object.keys(byCode).forEach(function (code) {
-    const hh = byCode[code];
-    hh.openSlots = Math.max(0, hh.maxParty - hh.named.length);
-  });
-  return byCode;
+function book_() {
+  if (SHEET_ID && SHEET_ID !== 'PASTE_SHEET_ID_HERE') return SpreadsheetApp.openById(SHEET_ID);
+  return SpreadsheetApp.getActiveSpreadsheet();
 }
 
-function findSaved_(code) {
-  const rows = sheet_(TAB.responses).getDataRange().getValues();
-  for (let i = 1; i < rows.length; i++) {
-    if (normaliseCode_(rows[i][RESP.code]) === code) {
-      return {
-        attending: rows[i][RESP.attending],
-        guests: parseGuests_(rows[i][RESP.guests]),
-        dietary: rows[i][RESP.dietary],
-        song: rows[i][RESP.song],
-        hotel: rows[i][RESP.hotel],
-        flight: rows[i][RESP.flight],
-        email: rows[i][RESP.email],
-        message: rows[i][RESP.message]
-      };
-    }
-  }
-  return null;
+function rsvpSheet_() {
+  const sheet = book_().getSheetByName(TAB.rsvps);
+  if (!sheet) throw new Error('No RSVPs tab yet. Run Wedding RSVP, Set up tabs first.');
+  return sheet;
 }
 
-// Hand typed rows may hold no guest list, so a bad value reads as empty.
-function parseGuests_(raw) {
-  try {
-    const parsed = JSON.parse(raw);
-    return Array.isArray(parsed) ? parsed : [];
-  } catch (err) {
-    return [];
-  }
-}
-
-function answerFor_(saved, name) {
-  if (!saved) return '';
-  const idx = indexOfName_(saved.guests, name);
-  return idx === -1 ? '' : saved.guests[idx].attending;
-}
-
-function indexOfName_(list, name) {
-  const wanted = name.toLowerCase();
-  for (let i = 0; i < list.length; i++) {
-    if (String(list[i].name || '').trim().toLowerCase() === wanted) return i;
-  }
-  return -1;
-}
-
-function isNamed_(hh, name) {
-  const wanted = String(name || '').trim().toLowerCase();
-  return hh.named.some(function (n) { return n.toLowerCase() === wanted; });
-}
-
-function codesWithResponse_() {
-  const codes = {};
-  sheet_(TAB.responses).getDataRange().getValues().slice(1).forEach(function (r) {
-    const c = normaliseCode_(r[RESP.code]);
-    if (c) codes[c] = true;
-  });
-  return codes;
-}
-
-function loggedCodes_(outcome) {
-  const codes = {};
-  outputSheet_(TAB.log).getDataRange().getValues().slice(1).forEach(function (r) {
-    if (r[2] === outcome) codes[normaliseCode_(r[1])] = true;
-  });
-  return codes;
-}
-
-function tooManyFails_() {
-  const since = Date.now() - FAIL_WINDOW_MINUTES * 60 * 1000;
-  const fails = outputSheet_(TAB.log).getDataRange().getValues().slice(1).filter(function (r) {
-    return r[2] === 'fail' && new Date(r[0]).getTime() >= since;
-  });
-  return fails.length > MAX_FAILS;
-}
-
-function logAttempt_(code, outcome) {
-  outputSheet_(TAB.log).appendRow([new Date(), code, outcome]);
-}
-
-// Replaces the body of an output tab, keeping its header row.
-function writeRows_(name, rows) {
-  const sheet = outputSheet_(name);
-  const header = HEADERS[name];
-  sheet.clearContents();
-  sheet.getRange(1, 1, 1, header.length).setValues([header]);
-  if (rows.length) {
-    sheet.getRange(2, 1, rows.length, header.length).setValues(rows);
-  }
-}
-
-// Tabs the people never type into. Created with headers if missing.
-function outputSheet_(name) {
-  const book = SpreadsheetApp.openById(SHEET_ID);
-  let sheet = book.getSheetByName(name);
+function log_(event, detail) {
+  const book = book_();
+  let sheet = book.getSheetByName(TAB.log);
   if (!sheet) {
-    sheet = book.insertSheet(name);
-    sheet.getRange(1, 1, 1, HEADERS[name].length).setValues([HEADERS[name]]);
+    sheet = book.insertSheet(TAB.log);
+    sheet.getRange(1, 1, 1, LOG_HEADERS.length).setValues([LOG_HEADERS]);
   }
-  return sheet;
+  sheet.appendRow([new Date(), event, detail || '']);
 }
 
-// Tabs the people fill in by hand. Must exist before the script runs.
-function sheet_(name) {
-  const sheet = SpreadsheetApp.openById(SHEET_ID).getSheetByName(name);
-  if (!sheet) throw new Error('Missing tab: ' + name);
-  return sheet;
+function logCount_(event, sinceMs) {
+  const sheet = book_().getSheetByName(TAB.log);
+  if (!sheet) return 0;
+  const since = Date.now() - sinceMs;
+  return sheet.getDataRange().getValues().slice(1).filter(function (r) {
+    return r[1] === event && new Date(r[0]).getTime() >= since;
+  }).length;
 }
 
-function newCode_(used) {
-  let code;
-  do {
-    // Each byte of a random UUID is reduced modulo 32, which divides 256 evenly,
-    // so every letter and digit in the alphabet is equally likely.
-    const hex = Utilities.getUuid().replace(/-/g, '');
-    code = '';
-    for (let i = 0; i < CODE_LENGTH; i++) {
-      const byte = parseInt(hex.substr(i * 2, 2), 16);
-      code += CODE_ALPHABET.charAt(byte % CODE_ALPHABET.length);
-    }
-  } while (used[code]);
-  used[code] = true;
-  return code;
+function emailsSentLast24h_() { return logCount_('email_sent', 24 * 60 * 60 * 1000); }
+function submitsLastHour_() { return logCount_('reply', 60 * 60 * 1000); }
+
+function deadlinePassed_() { return Date.now() > new Date(CUTOFF).getTime(); }
+
+function isEmail_(value) { return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(value); }
+
+function clean_(value, max) { return String(value || '').trim().slice(0, max || 500); }
+
+function heading_(col) {
+  return col.replace(/_/g, ' ').replace(/^\w/, function (c) { return c.toUpperCase(); });
 }
 
-function inviteLink_(code) {
-  return SITE_URL + '/rsvp/?code=' + code;
+function fmtDate_(d) {
+  return Utilities.formatDate(d, 'Asia/Manila', 'd MMM yyyy');
 }
 
-function inviteMessage_(hh) {
-  const link = inviteLink_(hh.code);
-  if (hh.language === 'tl') {
-    return "Buong galak po namin kayong inaanyayahan sa aming kasal, sa ikasampu ng Abril, dalawang libo dalawampu't pito. " +
-      'Sagutin po ninyo ito dito: ' + link + ' (We warmly invite you to our wedding on 10 April 2027.) Manuel at Natasha';
-  }
-  return 'We warmly invite you to our wedding on 10 April 2027 in Manila. Reply here: ' + link + ' Manuel and Natasha';
-}
-
-function reminderMessage_(hh) {
-  const link = inviteLink_(hh.code);
-  if (hh.language === 'tl') {
-    return 'Magandang araw po, ' + hh.household + '. Sana po ay makadalo kayo sa aming kasal. ' +
-      'Pakisagot po dito bago ang ikalabinglima ng Enero: ' + link + ' Manuel at Natasha';
-  }
-  return 'Hello ' + hh.household + ', please reply by 15 January 2027 so we can plan the day: ' + link + ' Manuel and Natasha';
-}
-
-function deadlinePassed_() {
-  return Date.now() > new Date(CUTOFF).getTime();
-}
-
-function isEmail_(value) {
-  return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(value);
-}
-
-function normaliseCode_(raw) {
-  return String(raw || '').toUpperCase().replace(/[\s-]/g, '');
-}
-
-function clean_(value) {
-  return String(value || '').trim().slice(0, 500);
-}
-
-function flag_(value) {
-  return value === 'yes' || value === 'no' ? value : '';
+function unique_(list) {
+  return list.filter(function (v, i) { return list.indexOf(v) === i; });
 }

@@ -125,6 +125,8 @@ Note (Manny, September 2026): the Los Mapas section was cut entirely from the ho
 
 ## RSVP system (phase 2 build)
 
+SUPERSEDED in November 2026 by the single link RSVP, see the last section of this file. The household code rules below no longer apply.
+
 The working build plan for the RSVP is in RSVP_PLAN.md at the repo root. Read it before touching anything RSVP related. Where it disagrees with this section or Backend architecture below, the plan wins.
 
 - Invite only. Each household gets a random six character code, drawn from ABCDEFGHJKLMNPQRSTUVWXYZ23456789 (no I, O, 0 or 1). Example shape: K7M4QX. Codes never use names, so a code reveals nothing about a family.
@@ -189,3 +191,21 @@ Update, 11 October 2026 (Manny): music is now ON by default. No saved choice cou
 ## Our Story hidden, November 2026 (Manny)
 
 Our Story is under construction with no way in. It is removed from the menu on every page. On the homepage its card stays as a plain, unlinked card (.nav-card-closed) with a Ginagawa pa, under construction line. The historia page itself shows only the under construction panel, is set to noindex, and the portrait pair is commented out in the HTML, ready to restore. To reopen, put the menu link back on every page, turn the card back into a link to historia/, uncomment the portraits and drop the noindex.
+
+## RSVP single link, November 2026 (Manny)
+
+Replaces the household code plan. RSVP_PLAN.md is superseded and kept for history only. The build brief is RSVP_UPDATE_NOV2026.md.
+
+- One RSVP link for everyone, manuelynatasha.com/rsvp/. No household codes, no QR prefill.
+- Max 2 seats per reply. Extra seats are a request, never promised ("We can't guarantee extra seats, but we'll do our best").
+- Replies close 15 January 2027, 23:59 Manila, enforced by the server. We confirm by 31 January 2027.
+- Fields: attending, name, email, mobile with country code, seats, attendee names, country, dietary, extra seats, Diamond Hotel interest, message. No airline or flight interest field.
+- Replies keyed by email, so resubmitting updates the row. Backend is backend/Code.gs attached to the Copy of Wedding RSVP sheet in the wedding Gmail. Tabs: RSVPs, InviteList, Send invites, Log. Setup steps are in backend/SETUP.md. DRY_RUN stays true until Manny switches it off.
+- Signature reads Manuel at Natasha (signature image only). The logo, footer M y N and domain are unchanged.
+- Homepage order: Intramuros panorama as header, menu, one combined Ang Paanyaya invitation card with the countdown inside, then a large burnt orange Tugon RSVP panel, then a small Save the date calendar button. Never use Pakisagot.
+- Reception: 6pm, doors open from 5:30pm, never show an end time. After party at Bar 27, just across the hallway on the 27th floor. Do not say who pays for drinks.
+- Diamond Hotel rate: guests email reservations@diamondhotel.com, cc pmanalastas@diamondhotel.com and the wedding Gmail, quoting "Tamayo's Wedding, April 10, 2027". Email only. Rates per room type still pending from the hotel.
+- Dress Code palette (Ang Kulay): Burnt Orange #CD621E, Sand #D5A786, Soft Gold #EED595, Ecru #F5EDDD, sampled from the mood board. Each swatch carries its name for colour blind readers. Two extra For Her photos in burnt orange and soft gold sit under In our colours, no sepia. The earlier ivory, blush, sage and champagne palette is retired.
+- Tagalog first on new copy, English as the italic gloss beneath.
+- Expected guests now about 140.
+
