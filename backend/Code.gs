@@ -38,6 +38,13 @@ const MAX_SUBMITS_PER_HOUR = 60;
 
 const MAX_SEATS = 2;
 
+// A short heads up email goes to these addresses for every new or changed reply.
+// It is sent even while DRY_RUN is on, because it only goes to you.
+// To also get it at another address, add it inside the quotes, for example
+// 'name@example.com'. Do it in the script editor only, not in the copy on GitHub.
+const NOTIFY_TO = 'manuelynatashatamayo@gmail.com';
+const NOTIFY_EXTRA = '';
+
 const HOTEL = {
   reservations: 'reservations@diamondhotel.com',
   events: 'pmanalastas@diamondhotel.com',
@@ -179,6 +186,7 @@ function submit_(b) {
   }
 
   const saved = writeRow_(r);
+  notifyCouple_(r, saved.updated);
   sendReceipt_(r);
   return { ok: true, updated: saved.updated };
 }
@@ -236,6 +244,29 @@ function writeRow_(r) {
 }
 
 // Emails
+
+// Heads up for the couple, one short email per reply. Never blocks a reply.
+function notifyCouple_(r, updated) {
+  try {
+    const to = [NOTIFY_TO, NOTIFY_EXTRA].filter(String).join(',');
+    const head = (updated ? 'Updated RSVP: ' : 'New RSVP: ') + r.name + ', ' +
+      (r.attending === 'yes' ? 'coming, ' + r.seats + (r.seats === 1 ? ' seat' : ' seats') : 'can\'t make it');
+    const lines = [
+      r.name + ' (' + r.email + ', ' + r.phone + ')',
+      r.attending === 'yes' ? 'Guests: ' + r.guests.join(', ') : 'Not coming',
+      r.attending === 'yes' && r.country ? 'From: ' + r.country : '',
+      r.extra ? 'Asking for extra seats: ' + (r.extraDetails || 'yes') : '',
+      r.hotel ? 'Interested in the Diamond Hotel rate' : '',
+      r.dietary ? 'Dietary: ' + r.dietary : '',
+      r.message ? 'Message: ' + r.message : '',
+      '',
+      'Open the RSVPs tab in the Wedding RSVP sheet to set their status.'
+    ].filter(function (l, i) { return l !== '' || i === 7; });
+    MailApp.sendEmail({ to: to, subject: head, body: lines.join('\n'), name: 'Wedding RSVP' });
+  } catch (err) {
+    log_('notify_failed', String(err));
+  }
+}
 
 // Sent straight away, so every guest has a copy of what they sent.
 function sendReceipt_(r) {
